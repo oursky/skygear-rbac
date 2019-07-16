@@ -4,4 +4,4 @@
 
 ## Check permission
 
-![Permission Check](/doc/diagrams/check-permission-flow.svg)
+![Permission Check](../diagrams/check-permission-flow.svg)

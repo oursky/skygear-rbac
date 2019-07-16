@@ -15,4 +15,4 @@ This system is a Skygear "gear" that carries out [RBAC](https://en.wikipedia.org
 - Model: Describes how policies are interpreted and whether to deny/allow a request
 
 ## Flow
-![I/O](/doc/diagrams/input-output.svg)
+![I/O](../diagrams/input-output.svg)

@@ -1,9 +1,10 @@
 # Table of Contents
 
 - Design
-  - [System Overview](/doc/design/system-overview)
-  - [Flows](/doc/design/flow)
-  - [Schema](/doc/design/schema)
+  - [System Overview](./design/system-overview.md)
+  - [Flows](./design/flow.md)
+  - [Schema](./design/schema.md)
 - Casbin
-  - [Policy Model](/doc/casbin/model)
-  - [Policy](/doc/casbin/policy)
+  - [Why Casbin?](./casbin/why-casbin.md)
+  - [Policy Model](./casbin/model.md)
+  - [Policy](./casbin/policy.md)
