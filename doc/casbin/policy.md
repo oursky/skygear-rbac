@@ -1,5 +1,7 @@
 # Policy
 
+[← Back](/doc/README.md)
+
 Policy describes what a subject is allowed/denied to apply action on an object, and what groups a subject belongs to
 
 **Example policy file**

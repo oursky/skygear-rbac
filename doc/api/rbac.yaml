@@ -1,0 +1,71 @@
+openapi: 3.0.1
+info:
+  title: Skygear RBAC
+  description: Skygear RBAC API
+  version: 1.0.0
+servers:
+- url: https://rbac.skygear.io/
+- url: http://rbac.skygear.io/
+tags:
+- name: policy
+  description: Everything about Policies
+paths:
+  /enforce:
+    post:
+      tags:
+      - policy
+      summary: Enforce policy
+      operationId: enforcePolicy
+      requestBody:
+        description: Assertion Request
+        content:
+          application/json:
+            example:
+              subject:
+                id: '123'
+              object:
+                id: 'data1'
+              action: 'read'
+            schema:
+              $ref: '#/components/schemas/AssertionRequest'
+        required: true
+      responses:
+        200:
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssertionResponse'
+components:
+  schemas:
+    Action:
+      type: string
+    AssertionRequest:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/Subject'
+        object:
+          $ref: '#/components/schemas/Object'
+        action:
+          $ref: '#/components/schemas/Action'
+    Object:
+      type: object
+      properties:
+        id:
+          type: string
+    AssertionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        result:
+          type: object
+          properties:
+            permitted:
+              type: boolean
+    Subject:
+      type: object
+      properties:
+        id:
+          type: string
