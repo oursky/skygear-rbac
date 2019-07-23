@@ -1,1 +1,1 @@
-:vertical_traffic_light: RBAC Gear for Skygear
+:vertical_traffic_light: RBAC service for Skygear

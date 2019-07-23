@@ -1,0 +1,7 @@
+p, root, admin, form, read
+
+g, admin, intern
+
+g2, hk_admin_id, hk
+g2, hk, asia
+g2, asia, world
