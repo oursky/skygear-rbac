@@ -11,22 +11,51 @@ tags:
   description: Everything about Policies
 paths:
   /policy:
+    get:
+      tags:
+      - policy
+      summary: Get policies
+      operationId: getPolicies
+      parameters:
+        - name: subjectId
+          in: query
+          description: Subject ID
+          schema:
+            type: string
+        - name: objectId
+          in: query
+          description: Object ID
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of policies
     delete:
-      tags: 
+      tags:
       - policy
       summary: Delete policy
       operationId: deletePolicy
-      requestBody:
-        description: Delete policy
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PolicyInput'
+      parameters:
+        - name: subjectId
+          in: query
+          description: Subject ID
+          schema:
+            type: string
+        - name: action
+          in: query
+          description: Action
+          schema:
+            type: string
+        - name: objectId
+          in: query
+          description: Object ID
+          schema:
+            type: string
       responses:
         200:
-          description: Add Policy succeeded
+          description: Delete Policy succeeded
     post:
-      tags: 
+      tags:
       - policy
       summary: Add policy
       operationId: addPolicy
@@ -67,7 +96,7 @@ paths:
                 $ref: '#/components/schemas/AssertionResponse'
   /roles:
     get:
-      tags: 
+      tags:
       - role
       summary: Get roles of user
       operationId: getRoles
@@ -90,7 +119,7 @@ paths:
                     items:
                       type: string
     put:
-      tags: 
+      tags:
       - role
       summary: Assign role to user
       operationId: assignRole
@@ -105,17 +134,21 @@ paths:
         200:
           description: Role assigned successfully
     delete:
-      tags: 
+      tags:
       - role
       summary: Remove role from user
       operationId: removeRole
-      requestBody:
-        description: Role Remove Request
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRoleInput'
-        required: true
+      parameters:
+        - name: subjectId
+          in: query
+          description: Subject ID
+          schema:
+            type: string
+        - name: role
+          in: query
+          description: Role
+          schema:
+            type: string
       responses:
         200:
           description: Role assigned successfully
@@ -128,23 +161,20 @@ components:
       properties:
         subject:
           $ref: '#/components/schemas/Subject'
-        permissions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Permission'
-    Permission:
-      type: object
-      properties:
         action:
           $ref: '#/components/schemas/Action'
         object:
           $ref: '#/components/schemas/Object'
+        effect:
+          type: string
+          enum: [allow, deny]
     PolicyInput:
       type: object
       properties:
-        policy:
-          type: object
-          $ref: '#/components/schemas/Policy'
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Policy'
     UserRoleInput:
       type: object
       properties:
@@ -162,10 +192,7 @@ components:
         action:
           $ref: '#/components/schemas/Action'
     Object:
-      type: object
-      properties:
-        id:
-          type: string
+      type: string
     AssertionResponse:
       type: object
       properties:
