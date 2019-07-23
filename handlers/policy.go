@@ -6,6 +6,7 @@ import (
 
 	casbin "github.com/casbin/casbin"
 	"github.com/gorilla/schema"
+	filters "robpike.io/filter"
 )
 
 type Policy struct {
@@ -64,7 +65,10 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		raw := h.Enforcer.GetFilteredPolicy(0, filter.Domain)
-		policies := PoliciesFromCasbin(raw)
+		policies := filters.Choose(PoliciesFromCasbin(raw), func(p Policy) bool {
+			return ((len(filter.ObjectID) == 0 || filter.ObjectID == p.ObjectID) &&
+				(len(filter.SubjectID) == 0 || filter.ObjectID == p.SubjectID))
+		})
 
 		js, _ := json.Marshal(policies)
 		w.Write(js)
