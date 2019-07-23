@@ -11,7 +11,7 @@ import (
 	"github.com/casbin/casbin"
 )
 
-func TestGetPolicy(t *testing.T) {
+func TestGetAndDeletePolicy(t *testing.T) {
 	e := casbin.NewEnforcer("../model.conf")
 
 	fakePolicy := Policy{
@@ -20,12 +20,8 @@ func TestGetPolicy(t *testing.T) {
 		ObjectID:  "data1",
 		Action:    "write",
 	}
-	s := make([]interface{}, len(fakePolicy.ToCasbin()))
-	for i, v := range fakePolicy.ToCasbin() {
-		s[i] = v
-	}
 
-	e.AddPolicy(s...)
+	e.AddPolicy(fakePolicy.ToArgs()...)
 
 	handler := &PolicyHandler{e}
 	server := httptest.NewServer(handler)
@@ -52,6 +48,26 @@ func TestGetPolicy(t *testing.T) {
 	if expected != string(actual) {
 		t.Errorf("Expected the message '%s'\n", expected)
 		t.Errorf("Received '%s'\n", actual)
+	} else {
+		req, _ := http.NewRequest("DELETE", server.URL, nil)
+		q := req.URL.Query()
+		q.Add("domain", fakePolicy.Domain)
+		q.Add("subjectId", fakePolicy.SubjectID)
+		q.Add("objectId", fakePolicy.ObjectID)
+		q.Add("action", fakePolicy.Action)
+		req.URL.RawQuery = q.Encode()
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		res := rec.Result()
+
+		if res.StatusCode != 200 {
+			t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
+		}
+		if len(e.GetPolicy()) != 0 {
+			t.Errorf("Expected policy to be deleted '%s'\n", expected)
+			t.Errorf("But got '%s'\n", e.GetPolicy())
+		}
 	}
 }
 

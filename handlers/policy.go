@@ -9,14 +9,22 @@ import (
 )
 
 type Policy struct {
-	Domain    string `json:"domain,omitempty"`
-	SubjectID string `json:"subjectId,omitempty"`
-	ObjectID  string `json:"objectId,omitempty"`
-	Action    string `json:"action,omitempty"`
+	Domain    string `json:"domain,omitempty" schema:"domain,omitempty"`
+	SubjectID string `json:"subjectId,omitempty" schema:"subjectId,omitempty"`
+	ObjectID  string `json:"objectId,omitempty" schema:"objectId,omitempty"`
+	Action    string `json:"action,omitempty" schema:"action,omitempty"`
 }
 
-func (p Policy) ToCasbin() []string {
+func (p Policy) ToRaw() []string {
 	return []string{p.Domain, p.SubjectID, p.ObjectID, p.Action}
+}
+
+func (p Policy) ToArgs() []interface{} {
+	s := make([]interface{}, len(p.ToRaw()))
+	for i, v := range p.ToRaw() {
+		s[i] = v
+	}
+	return s
 }
 
 type PolicyInput struct {
@@ -40,12 +48,6 @@ func PoliciesFromCasbin(raw [][]string) []Policy {
 	return ps
 }
 
-type PolicyFilter struct {
-	Domain    string `schema:"domain,omitempty"`
-	SubjectID string `schema:"subjectId,omitempty"`
-	ObjectID  string `schema:"objectId,omitempty"`
-}
-
 type PolicyHandler struct {
 	Enforcer *casbin.Enforcer
 }
@@ -54,7 +56,7 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		decoder := schema.NewDecoder()
-		filter := PolicyFilter{}
+		filter := Policy{}
 		err := decoder.Decode(&filter, r.URL.Query())
 
 		if err != nil {
@@ -73,5 +75,15 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Enforcer.AddPolicy(input.Domain, input.SubjectID, input.ObjectID, input.Action)
 		js, _ := json.Marshal(PoliciesFromCasbin(h.Enforcer.GetPolicy()))
 		w.Write(js)
+	case http.MethodDelete:
+		decoder := schema.NewDecoder()
+		filter := Policy{}
+		err := decoder.Decode(&filter, r.URL.Query())
+
+		if err != nil {
+			panic(err)
+		}
+
+		h.Enforcer.RemovePolicy(filter.ToArgs()...)
 	}
 }
