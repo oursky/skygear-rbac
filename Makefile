@@ -1,0 +1,3 @@
+.PHONE: test
+test:
+		go test ./...

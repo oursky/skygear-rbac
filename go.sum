@@ -4,7 +4,5 @@ github.com/casbin/casbin v1.9.1 h1:ucjbS5zTrmSLtH4XogqOG920Poe6QatdXtz1FEbApeM=
 github.com/casbin/casbin v1.9.1/go.mod h1:z8uPsfBJGUsnkagrt3G8QvjgTKFMBJ32UP8HpZllfog=
 github.com/gorilla/schema v1.1.0 h1:CamqUDOFUBqzrvxuz2vEwo8+SUdwsluFh7IlzJh30LY=
 github.com/gorilla/schema v1.1.0/go.mod h1:kgLaKoK1FELgZqMAVxx/5cbj0kT+57qxUrAlIO2eleU=
-github.com/robpike/filter v0.0.0-20150108201509-2984852a2183 h1:qDhD/wJDGyWrXKLIKmEKpKK/ejaZlguyeEaLZzmrtzo=
-github.com/robpike/filter v0.0.0-20150108201509-2984852a2183/go.mod h1:3dvYi47BCPInRb2ILlNnrXfl++XpwTWLbIxPyJsUvCw=
 robpike.io/filter v0.0.0-20150108201509-2984852a2183 h1:b7Y5VfvTcuK1JCT6YKDIaw5w8j/AYBz6DkX/pStQCsM=
 robpike.io/filter v0.0.0-20150108201509-2984852a2183/go.mod h1:JQLSCVDQbISDYGuIQqGa40P6NsyycM3cVAiOKl0tjfI=
