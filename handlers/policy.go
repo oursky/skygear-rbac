@@ -15,6 +15,17 @@ type Policy struct {
 	Action    string `json:"action,omitempty"`
 }
 
+func (p Policy) ToCasbin() []string {
+	return []string{p.Domain, p.SubjectID, p.ObjectID, p.Action}
+}
+
+type PolicyInput struct {
+	Domain    string `json:"domain,omitempty"`
+	SubjectID string `json:"subjectId,omitempty"`
+	ObjectID  string `json:"objectId,omitempty"`
+	Action    string `json:"action,omitempty"`
+}
+
 func PoliciesFromCasbin(raw [][]string) []Policy {
 	ps := []Policy{}
 
@@ -40,20 +51,27 @@ type PolicyHandler struct {
 }
 
 func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	decoder := schema.NewDecoder()
-	filter := PolicyFilter{}
-	decoder.Decode(&filter, r.URL.Query())
-	// err := json.NewDecoder(r.Body).Decode(&filter)
+	switch r.Method {
+	case http.MethodGet:
+		decoder := schema.NewDecoder()
+		filter := PolicyFilter{}
+		err := decoder.Decode(&filter, r.URL.Query())
 
-	// if err != nil {
-	// 	panic(err)
-	// }
+		if err != nil {
+			panic(err)
+		}
 
-	// policy := Policy{"Alex", "Form/123", "read"}
-	raw := h.Enforcer.GetFilteredPolicy(0, filter.Domain)
-	// raw := h.Enforcer.GetPolicy()
-	policies := PoliciesFromCasbin(raw)
+		raw := h.Enforcer.GetFilteredPolicy(0, filter.Domain)
+		policies := PoliciesFromCasbin(raw)
 
-	js, _ := json.Marshal(policies)
-	w.Write(js)
+		js, _ := json.Marshal(policies)
+		w.Write(js)
+		break
+	case http.MethodPost:
+		input := PolicyInput{}
+		json.NewDecoder(r.Body).Decode(&input)
+		h.Enforcer.AddPolicy(input.Domain, input.SubjectID, input.ObjectID, input.Action)
+		js, _ := json.Marshal(PoliciesFromCasbin(h.Enforcer.GetPolicy()))
+		w.Write(js)
+	}
 }

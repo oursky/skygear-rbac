@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	handlers "skygear-rbac/handlers"
@@ -47,13 +46,11 @@ func main() {
 		var enforceReq EnforceRequest
 		json.NewDecoder(r.Body).Decode(&enforceReq)
 
-		res, err := e.EnforceSafe(enforceReq.Subject, enforceReq.Object, enforceReq.Action)
-		if err != nil {
-			fmt.Println(err)
-		}
+		res := e.Enforce(enforceReq.Subject, enforceReq.Object, enforceReq.Action)
 		w.Write([]byte(strconv.FormatBool(res)))
 	})
 
 	http.Handle("/policy", &handlers.PolicyHandler{})
+
 	log.Fatal(http.ListenAndServe(":3001", nil))
 }
