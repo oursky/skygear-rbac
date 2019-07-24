@@ -75,5 +75,24 @@ func TestAssignThenRemoveRole(t *testing.T) {
 	if expected != string(actual) {
 		t.Errorf("Expected the message '%s'\n", expected)
 		t.Errorf("Received '%s'\n", actual)
+	} else {
+		req, _ := http.NewRequest("DELETE", server.URL, nil)
+		q := req.URL.Query()
+		q.Add("role", fakeRoleAssignment.Role)
+		q.Add("subjectId", fakeRoleAssignment.SubjectID)
+		req.URL.RawQuery = q.Encode()
+
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		res := rec.Result()
+
+		if res.StatusCode != 200 {
+			t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
+		}
+		stillHasDeletedRole, _ := e.HasRoleForUser(fakeRoleAssignment.SubjectID, fakeRoleAssignment.Role)
+		if stillHasDeletedRole {
+			t.Errorf("Expected policy to be deleted '%s'\n", expected)
+			t.Errorf("But got '%s'\n", e.GetPolicy())
+		}
 	}
 }

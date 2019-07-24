@@ -42,5 +42,15 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		roles := h.Enforcer.GetImplicitRolesForUser(input.SubjectID)
 		js, _ := json.Marshal(roles)
 		w.Write(js)
+	case http.MethodDelete:
+		decoder := schema.NewDecoder()
+		filter := RoleAssignment{}
+		err := decoder.Decode(&filter, r.URL.Query())
+
+		if err != nil {
+			panic(err)
+		}
+
+		h.Enforcer.DeleteRoleForUser(filter.SubjectID, filter.Role)
 	}
 }
