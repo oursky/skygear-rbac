@@ -1,12 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	handlers "skygear-rbac/handlers"
-	"strconv"
-	"strings"
 
 	"github.com/casbin/casbin"
 )
@@ -24,33 +21,13 @@ type Object struct {
 	Id string `json:"id,omitempty"`
 }
 
-type EnforceRequest struct {
-	Subject Subject `json:"subject,omitempty"`
-	Action  string  `json:"action,omitempty"`
-	Object  Object  `json:"object,omitempty"`
-}
-
-func EntityUnder(args ...interface{}) (interface{}, error) {
-	subject1 := args[0].(Subject)
-	// name2 := args[1].(string)
-
-	return strings.HasPrefix("asia:hk", subject1.Meta.Entity), nil
-}
-
 func main() {
 	e := casbin.NewEnforcer("./model.conf", "./policy.csv")
 
-	// e.AddFunction("entity_under", EntityUnder)
-
-	http.HandleFunc("/policy/enforce", func(w http.ResponseWriter, r *http.Request) {
-		var enforceReq EnforceRequest
-		json.NewDecoder(r.Body).Decode(&enforceReq)
-
-		res := e.Enforce(enforceReq.Subject, enforceReq.Object, enforceReq.Action)
-		w.Write([]byte(strconv.FormatBool(res)))
-	})
-
+	http.HandleFunc("/policy/enforce", &handlers.EnforceHandler{})
 	http.Handle("/policy", &handlers.PolicyHandler{})
+	http.Handle("/domains", &handlers.DomainHandler{})
+	http.Handle("/roles", &handlers.RoleHandler{})
 
 	log.Fatal(http.ListenAndServe(":3001", nil))
 }

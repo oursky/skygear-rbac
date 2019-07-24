@@ -1,11 +1,13 @@
-p, domain:asia, role:admin, form, write
+p, domain:hk, role:admin, form, write
+p, domain:asia, role:admin, form, delete
 
 g, alice, role:admin
+g, billy, role:admin
 
 g, role:admin, role:intern
 
 g2, domain:asia, alice
-g2, domain:hk, alice
+g2, domain:hk, billy
 
 g2, domain:hk, domain:asia
 g2, domain:asia, domain:world
