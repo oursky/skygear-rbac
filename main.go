@@ -24,10 +24,10 @@ type Object struct {
 func main() {
 	e := casbin.NewEnforcer("./model.conf", "./policy.csv")
 
-	http.HandleFunc("/policy/enforce", &handlers.EnforceHandler{})
-	http.Handle("/policy", &handlers.PolicyHandler{})
-	http.Handle("/domains", &handlers.DomainHandler{})
-	http.Handle("/roles", &handlers.RoleHandler{})
+	http.Handle("/policy/enforce", &handlers.EnforceHandler{Enforcer: e})
+	http.Handle("/policy", &handlers.PolicyHandler{Enforcer: e})
+	http.Handle("/domains", &handlers.DomainHandler{Enforcer: e})
+	http.Handle("/roles", &handlers.RoleHandler{Enforcer: e})
 
 	log.Fatal(http.ListenAndServe(":3001", nil))
 }
