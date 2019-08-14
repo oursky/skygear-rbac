@@ -80,14 +80,12 @@ func TestAddPolicy(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	fakePolicy := PoliciesInput{
-		Policies: []PolicyInput{
-			PolicyInput{
-				Domain:  "root",
-				Subject: "alice",
-				Object:  "form",
-				Action:  "edit",
-			},
+	fakePolicy := []PolicyInput{
+		PolicyInput{
+			Domain:  "root",
+			Subject: "alice",
+			Object:  "form",
+			Action:  "edit",
 		},
 	}
 

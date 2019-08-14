@@ -5,21 +5,22 @@ import (
 	"net/http"
 
 	casbin "github.com/casbin/casbin"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	filters "robpike.io/filter"
 )
 
 func RoleAssignmentsFromCasbin(raw [][]string) []RoleAssignment {
-	ra := []RoleAssignment{}
+	ras := []RoleAssignment{}
 
 	for _, s := range raw {
-		ra = append(ra, RoleAssignment{
+		ras = append(ras, RoleAssignment{
 			Subject: s[0],
 			Role:    s[1],
 			Domain:  s[2],
 		})
 	}
-	return ra
+	return ras
 }
 
 type RoleAssignment struct {
@@ -39,6 +40,9 @@ type RoleHandler struct {
 }
 
 func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	domain := mux.Vars(r)["domain"]
+	subject := mux.Vars(r)["subjext"]
+
 	switch r.Method {
 	case http.MethodGet:
 		decoder := schema.NewDecoder()
@@ -46,6 +50,14 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(&filter, r.URL.Query())
 		if err != nil {
 			panic(err)
+		}
+
+		if len(domain) != 0 {
+			filter.Domain = domain
+		}
+
+		if len(subject) != 0 {
+			filter.Subject = subject
 		}
 
 		raw := h.Enforcer.GetFilteredGroupingPolicy(0, filter.Subject)
@@ -57,7 +69,17 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		input := RoleAssignmentInput{}
 		json.NewDecoder(r.Body).Decode(&input)
+
+		if len(domain) != 0 {
+			input.Domain = domain
+		}
+
+		if len(subject) != 0 {
+			input.Subject = subject
+		}
+
 		h.Enforcer.AddGroupingPolicy(input.Subject, input.Role, input.Domain)
+		h.Enforcer.AddNamedGroupingPolicy("g3", input.Subject, "user")
 		raw := h.Enforcer.GetFilteredGroupingPolicy(0, input.Subject)
 		roleAssignments := filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
 			return (len(input.Domain) == 0 || input.Domain == ra.Domain)
@@ -71,6 +93,14 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			panic(err)
+		}
+
+		if len(domain) != 0 {
+			filter.Domain = domain
+		}
+
+		if len(subject) != 0 {
+			filter.Subject = subject
 		}
 
 		h.Enforcer.RemoveGroupingPolicy(filter.Subject, filter.Role, filter.Domain)

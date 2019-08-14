@@ -30,7 +30,10 @@ func TestGetDomains(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	policy, _ := json.Marshal([]string{"domain:hk"})
+	policy, _ := json.Marshal(Domain{
+		SubDomains: []string{"domain:hk"},
+		Domain:     "domain:asia",
+	})
 	expected := string(policy)
 	actual, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -50,8 +53,8 @@ func TestCreateDomains(t *testing.T) {
 	defer server.Close()
 
 	fakeDomainInput := DomainInput{
-		Parent: "domain:asia",
-		Domain:   "domain:hk",
+		Parent:   "domain:asia",
+		Domain:   "domain:japan",
 		Subjects: []string{"role:admin"},
 	}
 
@@ -80,7 +83,10 @@ func TestCreateDomains(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	policy, _ := json.Marshal([]string{"domain:hk"})
+	policy, _ := json.Marshal(Domain{
+		SubDomains: []string{"domain:japan"},
+		Domain:     "domain:asia",
+	})
 	expected := string(policy)
 	actual, err := ioutil.ReadAll(res.Body)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	casbin "github.com/casbin/casbin"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	filters "robpike.io/filter"
 )
@@ -37,9 +38,7 @@ type PolicyInput struct {
 	Effect  string `json:"effect,omitempty"`
 }
 
-type PoliciesInput struct {
-	Policies []PolicyInput `json:"policies,omitempty"`
-}
+type PoliciesInput []PolicyInput
 
 func PoliciesFromCasbin(raw [][]string) []Policy {
 	ps := []Policy{}
@@ -67,6 +66,9 @@ type PolicyHandler struct {
 }
 
 func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	domain := mux.Vars(r)["domain"]
+	role := mux.Vars(r)["role"]
+
 	switch r.Method {
 	case http.MethodGet:
 		decoder := schema.NewDecoder()
@@ -75,6 +77,14 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			panic(err)
+		}
+
+		if len(domain) != 0 {
+			filter.Domain = domain
+		}
+
+		if len(role) != 0 {
+			filter.Subject = role
 		}
 
 		raw := h.Enforcer.GetPolicy()
@@ -90,7 +100,17 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		input := PoliciesInput{}
 		json.NewDecoder(r.Body).Decode(&input)
-		for _, policy := range input.Policies {
+
+		for _, policy := range input {
+			h.Enforcer.AddNamedGroupingPolicy("g3", policy.Subject, "user")
+			if len(domain) != 0 {
+				policy.Domain = domain
+			}
+
+			if len(role) != 0 {
+				policy.Subject = role
+			}
+
 			if policy.Effect == "deny" {
 				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action)
 				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
@@ -105,6 +125,14 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		decoder := schema.NewDecoder()
 		filter := Policy{}
 		err := decoder.Decode(&filter, r.URL.Query())
+
+		if len(domain) != 0 {
+			filter.Domain = domain
+		}
+
+		if len(role) != 0 {
+			filter.Subject = role
+		}
 
 		if err != nil {
 			panic(err)
