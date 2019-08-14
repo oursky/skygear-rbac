@@ -10,14 +10,15 @@ import (
 )
 
 type Policy struct {
-	Domain    string `json:"domain,omitempty" schema:"domain,omitempty"`
-	SubjectID string `json:"subjectId,omitempty" schema:"subjectId,omitempty"`
-	ObjectID  string `json:"objectId,omitempty" schema:"objectId,omitempty"`
-	Action    string `json:"action,omitempty" schema:"action,omitempty"`
+	Domain  string `json:"domain,omitempty" schema:"domain,omitempty"`
+	Subject string `json:"subject,omitempty" schema:"subject,omitempty"`
+	Object  string `json:"object,omitempty" schema:"object,omitempty"`
+	Action  string `json:"action,omitempty" schema:"action,omitempty"`
+	Effect  string `json:"effect,omitempty" schema:"effect,omitempty"`
 }
 
 func (p Policy) ToRaw() []string {
-	return []string{p.Domain, p.SubjectID, p.ObjectID, p.Action}
+	return []string{p.Domain, p.Subject, p.Object, p.Action, p.Effect}
 }
 
 func (p Policy) ToArgs() []interface{} {
@@ -29,21 +30,33 @@ func (p Policy) ToArgs() []interface{} {
 }
 
 type PolicyInput struct {
-	Domain    string `json:"domain,omitempty"`
-	SubjectID string `json:"subjectId,omitempty"`
-	ObjectID  string `json:"objectId,omitempty"`
-	Action    string `json:"action,omitempty"`
+	Domain  string `json:"domain,omitempty"`
+	Subject string `json:"subject,omitempty"`
+	Object  string `json:"object"`
+	Action  string `json:"action,omitempty"`
+	Effect  string `json:"effect,omitempty"`
+}
+
+type PoliciesInput struct {
+	Policies []PolicyInput `json:"policies,omitempty"`
 }
 
 func PoliciesFromCasbin(raw [][]string) []Policy {
 	ps := []Policy{}
 
 	for _, s := range raw {
+		var effect string
+		if len(s) >= 5 {
+			effect = s[4]
+		} else {
+			effect = "allow"
+		}
 		ps = append(ps, Policy{
-			Domain:    s[0],
-			SubjectID: s[1],
-			ObjectID:  s[2],
-			Action:    s[3],
+			Domain:  s[0],
+			Subject: s[1],
+			Object:  s[2],
+			Action:  s[3],
+			Effect:  effect,
 		})
 	}
 	return ps
@@ -64,21 +77,30 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		raw := h.Enforcer.GetFilteredPolicy(0, filter.Domain)
+		raw := h.Enforcer.GetPolicy()
 		policies := filters.Choose(PoliciesFromCasbin(raw), func(p Policy) bool {
-			return ((len(filter.ObjectID) == 0 || filter.ObjectID == p.ObjectID) &&
-				(len(filter.SubjectID) == 0 || filter.ObjectID == p.SubjectID))
+			return ((len(filter.Domain) == 0 || filter.Domain == p.Domain) &&
+				(len(filter.Object) == 0 || filter.Object == p.Object) &&
+				(len(filter.Subject) == 0 || filter.Subject == p.Subject))
 		})
 
 		js, _ := json.Marshal(policies)
 		w.Write(js)
 		break
 	case http.MethodPost:
-		input := PolicyInput{}
+		input := PoliciesInput{}
 		json.NewDecoder(r.Body).Decode(&input)
-		h.Enforcer.AddPolicy(input.Domain, input.SubjectID, input.ObjectID, input.Action)
-		js, _ := json.Marshal(PoliciesFromCasbin(h.Enforcer.GetPolicy()))
-		w.Write(js)
+		for _, policy := range input.Policies {
+			if policy.Effect == "deny" {
+				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action)
+				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
+				h.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "deny")
+			} else {
+				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "deny")
+				h.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
+			}
+		}
+		w.WriteHeader(200)
 	case http.MethodDelete:
 		decoder := schema.NewDecoder()
 		filter := Policy{}

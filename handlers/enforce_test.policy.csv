@@ -1,10 +1,10 @@
 p, domain:hk, role:admin, form, write
 p, domain:asia, role:admin, form, delete
 
-g, alice, role:admin
-g, billy, role:admin
+g, alice, role:admin, domain:asia
+g, billy, role:admin, domain:hk
 
-g, role:admin, role:intern
+g, role:admin, role:intern, domain:asia
 
 g2, domain:asia, alice
 g2, domain:hk, billy

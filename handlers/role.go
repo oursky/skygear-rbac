@@ -6,16 +6,32 @@ import (
 
 	casbin "github.com/casbin/casbin"
 	"github.com/gorilla/schema"
+	filters "robpike.io/filter"
 )
 
+func RoleAssignmentsFromCasbin(raw [][]string) []RoleAssignment {
+	ra := []RoleAssignment{}
+
+	for _, s := range raw {
+		ra = append(ra, RoleAssignment{
+			Subject: s[0],
+			Role:    s[1],
+			Domain:  s[2],
+		})
+	}
+	return ra
+}
+
 type RoleAssignment struct {
-	SubjectID string `json:"subjectId,omitempty" schema:"subjectId,omitempty"`
-	Role      string `json:"role,omitempty" schema:"role,omitempty"`
+	Subject string `json:"subject,omitempty" schema:"subject,omitempty"`
+	Role    string `json:"role,omitempty" schema:"role,omitempty"`
+	Domain  string `json:"domain" schema:"domain"`
 }
 
 type RoleAssignmentInput struct {
-	SubjectID string `json:"subjectId,omitempty" schema:"subjectId,omitempty"`
-	Role      string `json:"role,omitempty" schema:"role,omitempty"`
+	Subject string `json:"subject,omitempty" schema:"subject,omitempty"`
+	Role    string `json:"role,omitempty" schema:"role,omitempty"`
+	Domain  string `json:"domain" schema:"domain"`
 }
 
 type RoleHandler struct {
@@ -32,15 +48,21 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		roles := h.Enforcer.GetImplicitRolesForUser(filter.SubjectID)
-		js, _ := json.Marshal(roles)
+		raw := h.Enforcer.GetFilteredGroupingPolicy(0, filter.Subject)
+		roleAssignments := filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
+			return (len(filter.Domain) == 0 || filter.Domain == ra.Domain)
+		})
+		js, _ := json.Marshal(roleAssignments)
 		w.Write(js)
 	case http.MethodPost:
 		input := RoleAssignmentInput{}
 		json.NewDecoder(r.Body).Decode(&input)
-		h.Enforcer.AddRoleForUser(input.SubjectID, input.Role)
-		roles := h.Enforcer.GetImplicitRolesForUser(input.SubjectID)
-		js, _ := json.Marshal(roles)
+		h.Enforcer.AddGroupingPolicy(input.Subject, input.Role, input.Domain)
+		raw := h.Enforcer.GetFilteredGroupingPolicy(0, input.Subject)
+		roleAssignments := filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
+			return (len(input.Domain) == 0 || input.Domain == ra.Domain)
+		})
+		js, _ := json.Marshal(roleAssignments)
 		w.Write(js)
 	case http.MethodDelete:
 		decoder := schema.NewDecoder()
@@ -51,6 +73,6 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		h.Enforcer.DeleteRoleForUser(filter.SubjectID, filter.Role)
+		h.Enforcer.RemoveGroupingPolicy(filter.Subject, filter.Role, filter.Domain)
 	}
 }

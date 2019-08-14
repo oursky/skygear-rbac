@@ -1,0 +1,15 @@
+FROM golang:1.12.5
+
+ENV GO111MODULE on
+
+WORKDIR /go/src/rbac
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+RUN ["go", "get", "github.com/githubnemo/CompileDaemon"]
+
+COPY . .
+
+ENTRYPOINT CompileDaemon -log-prefix=false -build="go build -o ./rbac ." -command="./rbac"

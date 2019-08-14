@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -17,32 +19,42 @@ var cases = []struct {
 	ExpectPermit bool
 }{
 	{
-		Description: "should pass because alice in asia and hk allows admin to write form",
+		Description: "Normal case: should pass because alice is admin in asia and which is allowed to delete form",
 		Request: EnforceInput{
-			Domain:    "domain:hk",
-			SubjectID: "alice",
-			Action:    "write",
-			ObjectID:  "form",
+			Domain:  "domain:asia",
+			Subject: "alice",
+			Action:  "delete",
+			Object:  "form",
 		},
 		ExpectPermit: true,
 	},
 	{
-		Description: "should fail because billy is hk and only asia can delete form",
+		Description: "Permission-role inheritance case: should fail because alice in asia and only hk allows admin to write form",
 		Request: EnforceInput{
-			Domain:    "domain:hk",
-			SubjectID: "billy",
-			Action:    "delete",
-			ObjectID:  "form",
+			Domain:  "domain:hk",
+			Subject: "alice",
+			Action:  "write",
+			Object:  "form",
 		},
 		ExpectPermit: false,
 	},
 	{
-		Description: "should fail because billy is hk and although hk admin can write form, the object is in asia",
+		Description: "DISALLOW Role assignment inheritance: should fail because billy is hk admin and only asia admin can delete form",
 		Request: EnforceInput{
-			Domain:    "domain:asia",
-			SubjectID: "billy",
-			Action:    "write",
-			ObjectID:  "form",
+			Domain:  "domain:hk",
+			Subject: "billy",
+			Action:  "delete",
+			Object:  "form",
+		},
+		ExpectPermit: false,
+	},
+	{
+		Description: "Resource inheritance: should fail because billy is hk and although hk admin can write form, the object is in asia",
+		Request: EnforceInput{
+			Domain:  "domain:asia",
+			Subject: "billy",
+			Action:  "write",
+			Object:  "form",
 		},
 		ExpectPermit: false,
 	},
@@ -60,8 +72,8 @@ func TestEnforcePolicy(t *testing.T) {
 			req, _ := http.NewRequest("GET", server.URL, nil)
 			q := req.URL.Query()
 			q.Add("domain", c.Request.Domain)
-			q.Add("subjectId", c.Request.SubjectID)
-			q.Add("objectId", c.Request.ObjectID)
+			q.Add("subject", c.Request.Subject)
+			q.Add("object", c.Request.Object)
 			q.Add("action", c.Request.Action)
 			req.URL.RawQuery = q.Encode()
 
@@ -81,5 +93,39 @@ func TestEnforcePolicy(t *testing.T) {
 				t.Errorf("Received '%s'\n", actual)
 			}
 		})
+	}
+}
+
+func TestBatchEnforcePolicy(t *testing.T) {
+	e := casbin.NewEnforcer("../model.conf", "./enforce_test.policy.csv")
+
+	handler := &EnforceHandler{e}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	enforces := EnforcesInput{}
+	for _, c := range cases {
+		enforces.Enforces = append(enforces.Enforces, c.Request)
+	}
+	body, _ := json.Marshal(enforces)
+
+	req, _ := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	res := rec.Result()
+
+	if res.StatusCode != 200 {
+		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
+	}
+
+	output := EnforcesOutput{}
+	json.NewDecoder(res.Body).Decode(&output)
+	for k, c := range cases {
+		if output.Enforces[k].Permit != c.ExpectPermit {
+			t.Errorf("Expected the message '%s' for '%s'\n", strconv.FormatBool(c.ExpectPermit), fmt.Sprintf("case=%d-%s", k, c.Description))
+			t.Errorf("Received '%s'\n", strconv.FormatBool(output.Enforces[k].Permit))
+		}
 	}
 }

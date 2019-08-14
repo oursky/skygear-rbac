@@ -15,10 +15,11 @@ func TestGetAndDeletePolicy(t *testing.T) {
 	e := casbin.NewEnforcer("../model.conf")
 
 	fakePolicy := Policy{
-		Domain:    "root",
-		SubjectID: "admin",
-		ObjectID:  "data1",
-		Action:    "write",
+		Domain:  "root",
+		Subject: "admin",
+		Object:  "data1",
+		Action:  "write",
+		Effect:  "allow",
 	}
 
 	e.AddPolicy(fakePolicy.ToArgs()...)
@@ -52,9 +53,10 @@ func TestGetAndDeletePolicy(t *testing.T) {
 		req, _ := http.NewRequest("DELETE", server.URL, nil)
 		q := req.URL.Query()
 		q.Add("domain", fakePolicy.Domain)
-		q.Add("subjectId", fakePolicy.SubjectID)
-		q.Add("objectId", fakePolicy.ObjectID)
+		q.Add("subject", fakePolicy.Subject)
+		q.Add("object", fakePolicy.Object)
 		q.Add("action", fakePolicy.Action)
+		q.Add("effect", fakePolicy.Effect)
 		req.URL.RawQuery = q.Encode()
 
 		rec := httptest.NewRecorder()
@@ -78,11 +80,15 @@ func TestAddPolicy(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	fakePolicy := Policy{
-		Domain:    "root",
-		SubjectID: "alice",
-		ObjectID:  "form",
-		Action:    "edit",
+	fakePolicy := PoliciesInput{
+		Policies: []PolicyInput{
+			PolicyInput{
+				Domain:  "root",
+				Subject: "alice",
+				Object:  "form",
+				Action:  "edit",
+			},
+		},
 	}
 
 	body, _ := json.Marshal(fakePolicy)
@@ -96,15 +102,5 @@ func TestAddPolicy(t *testing.T) {
 
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
-	}
-	policy, _ := json.Marshal([]Policy{fakePolicy})
-	expected := string(policy)
-	actual, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if expected != string(actual) {
-		t.Errorf("Expected the message '%s'\n", expected)
-		t.Errorf("Received '%s'\n", actual)
 	}
 }

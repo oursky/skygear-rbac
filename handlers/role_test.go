@@ -14,13 +14,21 @@ import (
 func TestGetRoles(t *testing.T) {
 	e := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
 
+	fakeRoleAssignments := []RoleAssignment{
+		RoleAssignment{
+			Subject: "alice",
+			Role: "role:admin",
+			Domain: "domain:asia",
+		},
+	}
+
 	handler := &RoleHandler{e}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
 	req, _ := http.NewRequest("GET", server.URL, nil)
 	q := req.URL.Query()
-	q.Add("subjectId", "alice")
+	q.Add("subject", "alice")
 	req.URL.RawQuery = q.Encode()
 
 	rec := httptest.NewRecorder()
@@ -30,7 +38,7 @@ func TestGetRoles(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	policy, _ := json.Marshal([]string{"role:admin", "role:intern"})
+	policy, _ := json.Marshal(fakeRoleAssignments)
 	expected := string(policy)
 	actual, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -51,7 +59,8 @@ func TestAssignThenRemoveRole(t *testing.T) {
 
 	fakeRoleAssignment := RoleAssignmentInput{
 		Role:      "admin",
-		SubjectID: "billy",
+		Subject: "billy",
+		Domain: "domain:hk",
 	}
 
 	body, _ := json.Marshal(fakeRoleAssignment)
@@ -66,7 +75,7 @@ func TestAssignThenRemoveRole(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	policy, _ := json.Marshal([]string{fakeRoleAssignment.Role})
+	policy, _ := json.Marshal([]RoleAssignmentInput{fakeRoleAssignment})
 	expected := string(policy)
 	actual, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -79,7 +88,8 @@ func TestAssignThenRemoveRole(t *testing.T) {
 		req, _ := http.NewRequest("DELETE", server.URL, nil)
 		q := req.URL.Query()
 		q.Add("role", fakeRoleAssignment.Role)
-		q.Add("subjectId", fakeRoleAssignment.SubjectID)
+		q.Add("subject", fakeRoleAssignment.Subject)
+		q.Add("domain", fakeRoleAssignment.Domain)
 		req.URL.RawQuery = q.Encode()
 
 		rec := httptest.NewRecorder()
@@ -89,7 +99,7 @@ func TestAssignThenRemoveRole(t *testing.T) {
 		if res.StatusCode != 200 {
 			t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 		}
-		stillHasDeletedRole, _ := e.HasRoleForUser(fakeRoleAssignment.SubjectID, fakeRoleAssignment.Role)
+		stillHasDeletedRole := e.HasPolicy(fakeRoleAssignment.Subject, fakeRoleAssignment.Role, fakeRoleAssignment.Domain)
 		if stillHasDeletedRole {
 			t.Errorf("Expected policy to be deleted '%s'\n", expected)
 			t.Errorf("But got '%s'\n", e.GetPolicy())

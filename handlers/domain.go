@@ -9,15 +9,15 @@ import (
 )
 
 type Domain struct {
-	SubjectID string `json:"subjectId,omitempty" schema:"subjectId,omitempty"`
+	Subject   string `json:"subject,omitempty" schema:"subject,omitempty"`
 	Domain    string `json:"domain,omitempty" schema:"domain,omitempty"`
 	SubDomain string `json:"subdomain,omitempty" schema:"subdomain,omitempty"`
 }
 
 type DomainInput struct {
-	SubjectIDs []string `json:"subjectIds,omitempty" schema:"subjectIds,omitempty"`
-	Domain     string   `json:"domain,omitempty" schema:"domain,omitempty"`
-	ParentID   string   `json:"parentId,omitempty" schema:"subdomains,omitempty"`
+	Subjects []string `json:"subjects,omitempty" schema:"subjects,omitempty"`
+	Domain   string   `json:"domain,omitempty" schema:"domain,omitempty"`
+	Parent string   `json:"parent,omitempty" schema:"subdomains,omitempty"`
 }
 
 type DomainHandler struct {
@@ -47,13 +47,13 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		input := DomainInput{}
 		json.NewDecoder(r.Body).Decode(&input)
 
-		if len(input.ParentID) != 0 {
-			h.Enforcer.AddNamedGroupingPolicy("g2", input.Domain, input.ParentID)
+		if len(input.Parent) != 0 {
+			h.Enforcer.AddNamedGroupingPolicy("g2", input.Domain, input.Parent)
 		}
 
-		if len(input.SubjectIDs) != 0 {
-			for _, subjectID := range input.SubjectIDs {
-				h.Enforcer.AddNamedGroupingPolicy("g2", input.Domain, subjectID)
+		if len(input.Subjects) != 0 {
+			for _, subject := range input.Subjects {
+				h.Enforcer.AddNamedGroupingPolicy("g2", input.Domain, subject)
 			}
 		}
 
@@ -66,8 +66,8 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		if len(filter.SubjectID) != 0 {
-			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 1, filter.SubjectID)
+		if len(filter.Subject) != 0 {
+			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 1, filter.Subject)
 		} else if len(filter.Domain) != 0 {
 			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 0, filter.Domain)
 			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 1, filter.Domain)

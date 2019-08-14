@@ -50,9 +50,9 @@ func TestCreateDomains(t *testing.T) {
 	defer server.Close()
 
 	fakeDomainInput := DomainInput{
-		ParentID:   "domain:asia",
-		Domain:     "domain:hk",
-		SubjectIDs: []string{"role:admin"},
+		Parent: "domain:asia",
+		Domain:   "domain:hk",
+		Subjects: []string{"role:admin"},
 	}
 
 	body, _ := json.Marshal(fakeDomainInput)
@@ -101,7 +101,7 @@ func TestDeleteDomainSubject(t *testing.T) {
 
 	req, _ := http.NewRequest("DELETE", server.URL, nil)
 	q := req.URL.Query()
-	q.Add("subjectId", "alice")
+	q.Add("subject", "alice")
 	req.URL.RawQuery = q.Encode()
 
 	rec := httptest.NewRecorder()
