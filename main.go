@@ -17,11 +17,17 @@ import (
 )
 
 func main() {
+	dbURL := "postgres://postgres:@db?sslmode=disable"
+
+	if len(os.Getenv("DATABASE_URL")) != 0 {
+		dbURL = os.Getenv("DATABASE_URL")
+	}
+
 	var e *casbin.Enforcer
 	if os.Getenv("ENV") == "development" {
 		e = casbin.NewEnforcer("./model.conf", "./policy.csv")
 	} else {
-		params, _ := pq.ParseURL("postgres://postgres:@db?sslmode=disable")
+		params, _ := pq.ParseURL(dbURL)
 		a, err := xormadapter.NewAdapter("postgres", params)
 		if err != nil {
 			log.Fatal(err)
@@ -37,7 +43,7 @@ func main() {
 	})
 	r.Handle("/enforce", &handlers.EnforceHandler{Enforcer: e})
 	r.Handle("/{domain}/subject/{subject}/role", &handlers.RoleHandler{Enforcer: e})
-	r.Handle("/{domain}/role/{role}/policy", &handlers.SubjectHandler{Enforcer: e})
+	r.Handle("/{domain}/role/{role}/policy", &handlers.PolicyHandler{Enforcer: e})
 	r.Handle("/{domain}/role/{role}/subject", &handlers.SubjectHandler{Enforcer: e})
 	r.Handle("/{domain}/role", &handlers.RoleHandler{Enforcer: e})
 	r.Handle("/{domain}/policy", &handlers.PolicyHandler{Enforcer: e})
