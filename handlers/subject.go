@@ -63,7 +63,7 @@ func (h *SubjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		groups := filters.Choose(GroupsFromCasbin(raw), func(g Group) bool {
 			return ((len(filter.Domain) == 0 || filter.Domain == g.Domain) &&
 				(len(filter.Role) == 0 || filter.Role == g.Role) &&
-				(h.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "user")))
+				(!h.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "role") || h.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "user")))
 		})
 		var subjects []string
 		for _, group := range groups.([]Group) {

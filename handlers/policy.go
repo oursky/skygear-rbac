@@ -102,7 +102,6 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&input)
 
 		for _, policy := range input {
-			h.Enforcer.AddNamedGroupingPolicy("g3", policy.Subject, "user")
 			if len(domain) != 0 {
 				policy.Domain = domain
 			}

@@ -79,7 +79,8 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.Enforcer.AddGroupingPolicy(input.Subject, input.Role, input.Domain)
-		h.Enforcer.AddNamedGroupingPolicy("g3", input.Subject, "user")
+		// h.Enforcer.AddNamedGroupingPolicy("g3", input.Subject, "user")
+		h.Enforcer.AddNamedGroupingPolicy("g3", input.Role, "role")
 		raw := h.Enforcer.GetFilteredGroupingPolicy(0, input.Subject)
 		roleAssignments := filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
 			return (len(input.Domain) == 0 || input.Domain == ra.Domain)
