@@ -20,6 +20,8 @@ ENV DATABASE_URL postgres://postgres:@db?sslmode=disable
 
 WORKDIR /
 
+EXPOSE 6543
+
 COPY --from=builder /tmp/ /
 
 ENTRYPOINT ["/rbac"]
