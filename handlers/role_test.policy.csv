@@ -1,0 +1,14 @@
+p, role:admin, root, form, read
+
+g, alice, role:admin, domain:asia
+
+g, role:admin, role:intern, domain:asia
+
+g2, domain:asia, alice
+g2, domain:hk, alice
+
+g2, domain:hk, domain:asia
+g2, domain:asia, domain:world
+
+g3, alice, user
+g3, role:admin, role

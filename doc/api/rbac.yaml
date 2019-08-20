@@ -1,0 +1,210 @@
+openapi: 3.0.1
+info:
+  title: Skygear RBAC
+  description: Skygear RBAC API
+  version: 1.0.0
+servers:
+- url: https://rbac.skygear.io/
+- url: http://rbac.skygear.io/
+tags:
+- name: policy
+  description: Everything about Policies
+paths:
+  /policy:
+    get:
+      tags:
+      - policy
+      summary: Get policies
+      operationId: getPolicies
+      parameters:
+        - name: subjectId
+          in: query
+          description: Subject ID
+          schema:
+            type: string
+        - name: objectId
+          in: query
+          description: Object ID
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of policies
+    delete:
+      tags:
+      - policy
+      summary: Delete policy
+      operationId: deletePolicy
+      parameters:
+        - name: subjectId
+          in: query
+          description: Subject ID
+          schema:
+            type: string
+        - name: action
+          in: query
+          description: Action
+          schema:
+            type: string
+        - name: objectId
+          in: query
+          description: Object ID
+          schema:
+            type: string
+      responses:
+        200:
+          description: Delete Policy succeeded
+    post:
+      tags:
+      - policy
+      summary: Add policy
+      operationId: addPolicy
+      requestBody:
+        description: Add policy
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyInput'
+      responses:
+        200:
+          description: Add Policy succeeded
+  /policy/enforce:
+    post:
+      tags:
+      - policy
+      summary: Enforce policy
+      operationId: enforcePolicy
+      requestBody:
+        description: Assertion Request
+        content:
+          application/json:
+            example:
+              subject:
+                id: '123'
+              object:
+                id: 'data1'
+              action: 'read'
+            schema:
+              $ref: '#/components/schemas/AssertionRequest'
+        required: true
+      responses:
+        200:
+          description: Permit result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssertionResponse'
+  /roles:
+    get:
+      tags:
+      - role
+      summary: Get roles of user
+      operationId: getRoles
+      parameters:
+        - name: user
+          in: query
+          description: User Id
+          schema:
+            type: string
+      responses:
+        200:
+          description: Roles of user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roles:
+                    type: array
+                    items:
+                      type: string
+    put:
+      tags:
+      - role
+      summary: Assign role to user
+      operationId: assignRole
+      requestBody:
+        description: Role Assign Request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleInput'
+        required: true
+      responses:
+        200:
+          description: Role assigned successfully
+    delete:
+      tags:
+      - role
+      summary: Remove role from user
+      operationId: removeRole
+      parameters:
+        - name: subjectId
+          in: query
+          description: Subject ID
+          schema:
+            type: string
+        - name: role
+          in: query
+          description: Role
+          schema:
+            type: string
+      responses:
+        200:
+          description: Role assigned successfully
+components:
+  schemas:
+    Action:
+      type: string
+    Policy:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/Subject'
+        action:
+          $ref: '#/components/schemas/Action'
+        object:
+          $ref: '#/components/schemas/Object'
+        effect:
+          type: string
+          enum: [allow, deny]
+    PolicyInput:
+      type: object
+      properties:
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Policy'
+    UserRoleInput:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/Subject'
+        role:
+          $ref: '#/components/schemas/Object'
+    AssertionRequest:
+      type: object
+      properties:
+        subject:
+          $ref: '#/components/schemas/Subject'
+        object:
+          $ref: '#/components/schemas/Object'
+        action:
+          $ref: '#/components/schemas/Action'
+    Object:
+      type: string
+    AssertionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        result:
+          type: object
+          properties:
+            permitted:
+              type: boolean
+    Subject:
+      type: object
+      properties:
+        id:
+          type: string
