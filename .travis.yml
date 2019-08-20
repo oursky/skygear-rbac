@@ -9,13 +9,17 @@ services:
 go:
   - 1.12.5
 
+env:
+  - GO111MODULE=on
+
+install: true
+
 script:
+  - go mod download
   - make test
 
-before_install:
-  - make docker-build
-
 before_deploy:
+  - make docker-build
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 deploy:

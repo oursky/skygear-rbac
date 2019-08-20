@@ -5,7 +5,6 @@ LATEST := ${NAME}:latest
 
 .PHONY: test
 test:
-		go mod download
 		go test ./...
 
 .PHONY: dev
