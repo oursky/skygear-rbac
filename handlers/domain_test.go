@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/casbin/casbin"
+	"github.com/casbin/casbin/v2"
 )
 
 func TestGetDomains(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
+	e, _ := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)
@@ -46,7 +46,7 @@ func TestGetDomains(t *testing.T) {
 }
 
 func TestCreateDomains(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf")
+	e, _ := casbin.NewEnforcer("../model.conf")
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)
@@ -99,7 +99,7 @@ func TestCreateDomains(t *testing.T) {
 }
 
 func TestDeleteDomainSubject(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
+	e, _ := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)
@@ -125,7 +125,7 @@ func TestDeleteDomainSubject(t *testing.T) {
 }
 
 func TestDeleteDomain(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
+	e, _ := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)

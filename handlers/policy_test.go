@@ -8,11 +8,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/casbin/casbin"
+	"github.com/casbin/casbin/v2"
 )
 
 func TestGetAndDeletePolicy(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf")
+	e, _ := casbin.NewEnforcer("../model.conf")
 
 	fakePolicy := Policy{
 		Domain:  "root",
@@ -74,7 +74,7 @@ func TestGetAndDeletePolicy(t *testing.T) {
 }
 
 func TestAddPolicy(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf")
+	e, _ := casbin.NewEnforcer("../model.conf")
 
 	handler := &PolicyHandler{e}
 	server := httptest.NewServer(handler)

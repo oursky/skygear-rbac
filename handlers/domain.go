@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	casbin "github.com/casbin/casbin"
+	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/mux"
 )

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	casbin "github.com/casbin/casbin"
+	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/schema"
 )
 
@@ -44,7 +44,7 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		res := h.Enforcer.Enforce(filter.Domain, filter.Subject, filter.Object, filter.Action)
+		res, _ := h.Enforcer.Enforce(filter.Domain, filter.Subject, filter.Object, filter.Action)
 		w.Write([]byte(strconv.FormatBool(res)))
 	case http.MethodPost:
 		input := EnforcesInput{}
@@ -53,9 +53,10 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var output EnforcesOutput
 
 		for _, enforce := range input.Enforces {
+			permit, _ := h.Enforcer.Enforce(enforce.Domain, enforce.Subject, enforce.Object, enforce.Action)
 			enforced := EnforceOutput{
 				Enforce: &enforce,
-				Permit:  h.Enforcer.Enforce(enforce.Domain, enforce.Subject, enforce.Object, enforce.Action),
+				Permit:  permit,
 			}
 			output.Enforces = append(output.Enforces, enforced)
 		}

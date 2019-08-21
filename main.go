@@ -12,7 +12,7 @@ import (
 
 	xormadapter "github.com/casbin/xorm-adapter"
 
-	"github.com/casbin/casbin"
+	"github.com/casbin/casbin/v2"
 	pq "github.com/lib/pq"
 )
 
@@ -25,14 +25,14 @@ func main() {
 
 	var e *casbin.Enforcer
 	if os.Getenv("ENV") == "development" {
-		e = casbin.NewEnforcer("./model.conf", "./policy.csv")
+		e, _ = casbin.NewEnforcer("./model.conf", "./policy.csv")
 	} else {
 		params, _ := pq.ParseURL(dbURL)
 		a, err := xormadapter.NewAdapter("postgres", params)
 		if err != nil {
 			log.Fatal(err)
 		}
-		e = casbin.NewEnforcer("./model.conf", a)
+		e, _ = casbin.NewEnforcer("./model.conf", a)
 	}
 
 	e.LoadPolicy()

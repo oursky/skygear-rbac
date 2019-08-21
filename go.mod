@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/0xAX/notificator v0.0.0-20181105090803-d81462e38c21 // indirect
-	github.com/casbin/casbin v1.9.1
+	github.com/casbin/casbin/v2 v2.0.1
 	github.com/casbin/xorm-adapter v0.0.0-20190806085643-0629743c2857
 	github.com/cespare/reflex v0.2.0 // indirect
 	github.com/codegangsta/envy v0.0.0-20141216192214-4b78388c8ce4 // indirect
