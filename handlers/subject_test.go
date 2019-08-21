@@ -7,11 +7,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/casbin/casbin"
+	"github.com/casbin/casbin/v2"
 )
 
 func TestGetSubjects(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
+	e, _ := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
 
 	handler := &SubjectHandler{e}
 	server := httptest.NewServer(handler)

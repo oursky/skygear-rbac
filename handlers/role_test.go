@@ -8,17 +8,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/casbin/casbin"
+	"github.com/casbin/casbin/v2"
 )
 
 func TestGetRoles(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
+	e, _ := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
 
 	fakeRoleAssignments := []RoleAssignment{
 		RoleAssignment{
 			Subject: "alice",
-			Role: "role:admin",
-			Domain: "domain:asia",
+			Role:    "role:admin",
+			Domain:  "domain:asia",
 		},
 	}
 
@@ -51,16 +51,16 @@ func TestGetRoles(t *testing.T) {
 }
 
 func TestAssignThenRemoveRole(t *testing.T) {
-	e := casbin.NewEnforcer("../model.conf")
+	e, _ := casbin.NewEnforcer("../model.conf")
 
 	handler := &RoleHandler{e}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
 	fakeRoleAssignment := RoleAssignmentInput{
-		Role:      "admin",
+		Role:    "admin",
 		Subject: "billy",
-		Domain: "domain:hk",
+		Domain:  "domain:hk",
 	}
 
 	body, _ := json.Marshal(fakeRoleAssignment)
