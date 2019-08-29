@@ -41,7 +41,7 @@ type RoleHandler struct {
 
 func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	domain := mux.Vars(r)["domain"]
-	subject := mux.Vars(r)["subjext"]
+	subject := mux.Vars(r)["subject"]
 
 	switch r.Method {
 	case http.MethodGet:
