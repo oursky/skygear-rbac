@@ -10,15 +10,23 @@ import (
 	filters "robpike.io/filter"
 )
 
+const NoSubject = "__nosubject__"
+
 func RoleAssignmentsFromCasbin(raw [][]string) []RoleAssignment {
 	ras := []RoleAssignment{}
 
 	for _, s := range raw {
-		ras = append(ras, RoleAssignment{
+		ra := RoleAssignment{
 			Subject: s[0],
 			Role:    s[1],
 			Domain:  s[2],
-		})
+		}
+
+		if ra.Subject == NoSubject {
+			ra.Subject = ""
+		}
+		ras = append(ras, ra)
+
 	}
 	return ras
 }
@@ -60,6 +68,10 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Subject = subject
 		}
 
+		if len(filter.Subject) == 0 {
+			filter.Subject = NoSubject
+		}
+
 		raw := h.Enforcer.GetFilteredGroupingPolicy(0, filter.Subject)
 		roleAssignments := filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
 			return (len(filter.Domain) == 0 || filter.Domain == ra.Domain)
@@ -76,6 +88,10 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if len(subject) != 0 {
 			input.Subject = subject
+		}
+
+		if len(input.Subject) == 0 {
+			input.Subject = NoSubject
 		}
 
 		h.Enforcer.AddGroupingPolicy(input.Subject, input.Role, input.Domain)
@@ -102,6 +118,10 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if len(subject) != 0 {
 			filter.Subject = subject
+		}
+
+		if len(filter.Subject) == 0 {
+			filter.Subject = NoSubject
 		}
 
 		h.Enforcer.RemoveGroupingPolicy(filter.Subject, filter.Role, filter.Domain)
