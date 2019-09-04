@@ -45,6 +45,7 @@ func main() {
 	r.Handle("/{domain}/subject/{subject}/role", &handlers.RoleHandler{Enforcer: e})
 	r.Handle("/{domain}/role/{role}/policy", &handlers.PolicyHandler{Enforcer: e})
 	r.Handle("/{domain}/role/{role}/subject", &handlers.SubjectHandler{Enforcer: e})
+	r.Handle("/{domain}/role/{role}/user", &handlers.UserHandler{Enforcer: e})
 	r.Handle("/{domain}/role", &handlers.RoleHandler{Enforcer: e})
 	r.Handle("/{domain}/policy", &handlers.PolicyHandler{Enforcer: e})
 	r.Handle("/{domain}", &handlers.DomainHandler{Enforcer: e})

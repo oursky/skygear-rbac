@@ -10,5 +10,5 @@ g2, domain:hk, alice
 g2, domain:hk, domain:asia
 g2, domain:asia, domain:world
 
-g3, alice, user
-g3, role:admin, role
+g3, admin, role, domain:hk
+g3, role:admin, role, domain:asia

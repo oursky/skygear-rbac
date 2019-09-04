@@ -10,10 +10,10 @@ import (
 	"github.com/casbin/casbin/v2"
 )
 
-func TestGetSubjects(t *testing.T) {
+func TestGetUsers(t *testing.T) {
 	e, _ := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
 
-	handler := &SubjectHandler{e}
+	handler := &UserHandler{e}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -28,7 +28,7 @@ func TestGetSubjects(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	policy, _ := json.Marshal([]string{"alice", "role:admin"})
+	policy, _ := json.Marshal([]string{"alice"})
 	expected := string(policy)
 	actual, err := ioutil.ReadAll(res.Body)
 	if err != nil {
