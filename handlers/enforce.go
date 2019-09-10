@@ -9,18 +9,9 @@ import (
 	"github.com/gorilla/schema"
 )
 
-type EnforcesOutput struct {
-	Enforces []EnforceOutput `json:"enforces,omitempty"`
-}
+type EnforcesOutput []bool
 
-type EnforceOutput struct {
-	Enforce *EnforceInput `json:"enforce,omitempty"`
-	Permit  bool          `json:"permit"`
-}
-
-type EnforcesInput struct {
-	Enforces []EnforceInput `json:"enforces,omitempty"`
-}
+type EnforcesInput []EnforceInput
 
 type EnforceInput struct {
 	Domain  string `json:"domain,omitempty" schema:"domain,omitempty"`
@@ -52,13 +43,9 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		var output EnforcesOutput
 
-		for _, enforce := range input.Enforces {
+		for _, enforce := range input {
 			permit, _ := h.Enforcer.Enforce(enforce.Domain, enforce.Subject, enforce.Object, enforce.Action)
-			enforced := EnforceOutput{
-				Enforce: &enforce,
-				Permit:  permit,
-			}
-			output.Enforces = append(output.Enforces, enforced)
+			output = append(output, permit)
 		}
 		js, _ := json.Marshal(output)
 		w.Write(js)

@@ -1,5 +1,5 @@
-p, domain:hk, role:admin, form, write
-p, domain:asia, role:admin, form, delete
+p, domain:hk, role:admin, form, write, allow
+p, domain:asia, role:admin, form, delete, allow
 
 g, alice, role:admin, domain:asia
 g, billy, role:admin, domain:hk

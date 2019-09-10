@@ -3,10 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	casbin "github.com/casbin/casbin/v2"
-	"github.com/gorilla/schema"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 )
 
 type Domain struct {
@@ -66,7 +67,6 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			input.Parent = "root"
 		}
 		h.Enforcer.AddNamedGroupingPolicy("g2", input.Domain, input.Parent)
-		
 
 		if len(input.SubDomains) != 0 {
 			for _, subdomain := range input.SubDomains {
@@ -97,6 +97,9 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if len(filter.Domain) != 0 {
 			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 0, filter.Domain)
 			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 1, filter.Domain)
+		}
+		if os.Getenv("ENV") != "development" {
+			h.Enforcer.SavePolicy()
 		}
 	}
 }
