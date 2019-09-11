@@ -51,19 +51,21 @@ func TestGetRoles(t *testing.T) {
 }
 
 func TestAssignThenRemoveRole(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf")
+	e, _ := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
 
 	handler := &RoleHandler{e}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	fakeRoleAssignment := RoleAssignmentInput{
-		Role:    "admin",
-		Subject: "billy",
-		Domain:  "domain:hk",
+	fakeRoleAssignments := RoleAssignmentsInput{
+		RoleAssignmentInput{
+			Role:    "admin",
+			Subject: "billy",
+			Domain:  "domain:hk",
+		},
 	}
 
-	body, _ := json.Marshal(fakeRoleAssignment)
+	body, _ := json.Marshal(fakeRoleAssignments)
 
 	req, _ := http.NewRequest("POST", server.URL, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -75,7 +77,7 @@ func TestAssignThenRemoveRole(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	policy, _ := json.Marshal([]RoleAssignmentInput{fakeRoleAssignment})
+	policy, _ := json.Marshal(fakeRoleAssignments)
 	expected := string(policy)
 	actual, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -87,9 +89,9 @@ func TestAssignThenRemoveRole(t *testing.T) {
 	} else {
 		req, _ := http.NewRequest("DELETE", server.URL, nil)
 		q := req.URL.Query()
-		q.Add("role", fakeRoleAssignment.Role)
-		q.Add("subject", fakeRoleAssignment.Subject)
-		q.Add("domain", fakeRoleAssignment.Domain)
+		q.Add("role", fakeRoleAssignments[0].Role)
+		q.Add("subject", fakeRoleAssignments[0].Subject)
+		q.Add("domain", fakeRoleAssignments[0].Domain)
 		req.URL.RawQuery = q.Encode()
 
 		rec := httptest.NewRecorder()
@@ -99,7 +101,7 @@ func TestAssignThenRemoveRole(t *testing.T) {
 		if res.StatusCode != 200 {
 			t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 		}
-		stillHasDeletedRole := e.HasPolicy(fakeRoleAssignment.Subject, fakeRoleAssignment.Role, fakeRoleAssignment.Domain)
+		stillHasDeletedRole := e.HasPolicy(fakeRoleAssignments[0].Subject, fakeRoleAssignments[0].Role, fakeRoleAssignments[0].Domain)
 		if stillHasDeletedRole {
 			t.Errorf("Expected policy to be deleted '%s'\n", expected)
 			t.Errorf("But got '%s'\n", e.GetPolicy())

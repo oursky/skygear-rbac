@@ -5,7 +5,7 @@ LATEST := ${NAME}:latest
 
 .PHONY: test
 test:
-		go test ./...
+		ENV="development" go test ./...
 
 .PHONY: dev
 dev:

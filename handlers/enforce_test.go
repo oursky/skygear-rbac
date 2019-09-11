@@ -105,7 +105,7 @@ func TestBatchEnforcePolicy(t *testing.T) {
 
 	enforces := EnforcesInput{}
 	for _, c := range cases {
-		enforces.Enforces = append(enforces.Enforces, c.Request)
+		enforces = append(enforces, c.Request)
 	}
 	body, _ := json.Marshal(enforces)
 
@@ -123,9 +123,9 @@ func TestBatchEnforcePolicy(t *testing.T) {
 	output := EnforcesOutput{}
 	json.NewDecoder(res.Body).Decode(&output)
 	for k, c := range cases {
-		if output.Enforces[k].Permit != c.ExpectPermit {
+		if output[k] != c.ExpectPermit {
 			t.Errorf("Expected the message '%s' for '%s'\n", strconv.FormatBool(c.ExpectPermit), fmt.Sprintf("case=%d-%s", k, c.Description))
-			t.Errorf("Received '%s'\n", strconv.FormatBool(output.Enforces[k].Permit))
+			t.Errorf("Received '%s'\n", strconv.FormatBool(output[k]))
 		}
 	}
 }
