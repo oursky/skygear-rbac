@@ -100,15 +100,12 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				input.Subject = NoSubject
 			}
 
-			if h.Enforcer.HasNamedGroupingPolicy("g3", input.Role, "role", input.Domain) {
-				if input.Unassign {
-					h.Enforcer.RemoveGroupingPolicy(input.Subject, input.Role, input.Domain)
-				} else {
-					h.Enforcer.AddGroupingPolicy(input.Subject, input.Role, input.Domain)
-				}
+			if input.Unassign {
+				h.Enforcer.RemoveGroupingPolicy(input.Subject, input.Role, input.Domain)
+			} else {
+				h.Enforcer.AddGroupingPolicy(input.Subject, input.Role, input.Domain)
 			}
 
-			// h.Enforcer.AddNamedGroupingPolicy("g3", input.Subject, "user", input.Domain)
 			h.Enforcer.AddNamedGroupingPolicy("g3", input.Role, "role", input.Domain)
 			// if input.Subject == NoSubject {
 			// 	h.Enforcer.RemoveNamedGroupingPolicy("g4", input.Role, "disabled", input.Domain)
