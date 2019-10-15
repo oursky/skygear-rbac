@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
@@ -71,6 +72,10 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
+		if os.Getenv("ENV") != "development" {
+			h.Enforcer.LoadPolicy()
+		}
+
 		decoder := schema.NewDecoder()
 		filter := Policy{}
 		err := decoder.Decode(&filter, r.URL.Query())

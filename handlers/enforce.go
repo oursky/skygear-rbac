@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 
 	casbin "github.com/casbin/casbin/v2"
@@ -27,6 +28,10 @@ type EnforceHandler struct {
 func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		if os.Getenv("ENV") != "development" {
+			h.Enforcer.LoadPolicy()
+		}
+
 		decoder := schema.NewDecoder()
 		filter := EnforceInput{}
 		err := decoder.Decode(&filter, r.URL.Query())
@@ -38,6 +43,10 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		res, _ := h.Enforcer.Enforce(filter.Domain, filter.Subject, filter.Object, filter.Action)
 		w.Write([]byte(strconv.FormatBool(res)))
 	case http.MethodPost:
+		if os.Getenv("ENV") != "development" {
+			h.Enforcer.LoadPolicy()
+		}
+
 		input := EnforcesInput{}
 		json.NewDecoder(r.Body).Decode(&input)
 
