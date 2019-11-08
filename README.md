@@ -1,33 +1,39 @@
-# :vertical_traffic_light: RBAC service for Skygear
+# Skygear RBAC OpenAPI Specification
+[![Build Status](https://travis-ci.com/oursky/skygear-rbac.svg?branch=master)](https://travis-ci.com/oursky/skygear-rbac)
+## Steps to finish
 
-> NOTE: This service uses casbin as db name, all records e.g. policy, group are under casbin_rule table
+1. Enable [Travis](https://docs.travis-ci.com/user/getting-started/#To-get-started-with-Travis-CI%3A) for your repository (**note**: you already have `.travis.yml` file)
+1. [Create GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/); select `public_repo` on `Select scopes` section.
+1. Use the token value as a value for [Travis environment variable](https://docs.travis-ci.com/user/environment-variables/#Defining-Variables-in-Repository-Settings) with the name `GH_TOKEN`
+1. Make a test commit to trigger CI: `git commit --allow-empty -m "Test Travis CI" && git push`
+1. Wait until Travis build is finished. You can check progress by clicking on the `Build Status` badge at the top
+1. **[Optional]** You can setup [custom domain](https://help.github.com/articles/using-a-custom-domain-with-github-pages/) (just create `web/CNAME` file)
+1. **[Optional]** If your API is public consider adding it into [APIs.guru](https://APIs.guru) directory using [this form](https://apis.guru/add-api/).
+1. Delete this section ❌
 
-## Testing
+## Links
 
-```sh
-make test
-```
+- [Reference Documentation (ReDoc)](https://oursky.github.io/skygear-rbac/)
+- OpenAPI Raw Files: [JSON](https://oursky.github.io/skygear-rbac/openapi.json) [YAML](https://oursky.github.io/skygear-rbac/openapi.yaml)
 
-## Docker
+**Warning:** All above links are updated only after Travis CI finishes deployment
 
-```sh
-docker pull oursky/skygear-rbac
+## Working on specification
+### Install
 
-docker run -e "DATABASE_URL=abc" oursky/skygear-rbac:latest
-```
+1. Install [Node JS](https://nodejs.org/)
+2. Clone repo and run `npm install` in the repo root
 
-## Current model
+### Usage
 
-```golang
-(
-  (r.domain == p.domain || g2('root', r.sub)) && # request domain is SAME as policy domain (to disable inheritance)
-  (
-    (g(r.sub, p.sub, r.domain) || (r.sub == p.sub && r.domain == p.domain)) || # request subject is assigned role/is the role in domain
-    (g(r.sub, p.sub, 'root') || (r.sub == p.sub && r.domain == 'root')) # request subject is assigned role/is the role in root
-  )
-) &&
-r.obj == p.obj &&  # request object matches policy
-r.act == p.act && # request action matches policy
-!g4(r.sub, 'disabled') && # subject in request is not disabled / archived
-!g4(p.sub, 'disabled') # subject in policy is not disabled / archived
-```
+#### `npm start`
+Starts the development server.
+
+#### `npm run build`
+Bundles the spec and prepares web_deploy folder with static assets.
+
+#### `npm test`
+Validates the spec.
+
+#### `npm run gh-pages`
+Deploys docs to GitHub Pages. You don't need to run it manually if you have Travis CI configured.

@@ -101,8 +101,8 @@ paths:
       operationId: getPoliciesOfDomain
       summary: Get roles of domain
       parameters: 
-        - name: id
-          in: path
+        - name: subject
+          in: query
           description: Subject
           schema:
             type: string

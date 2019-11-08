@@ -1,0 +1,8 @@
+specFileName: doc/api/rbac.yaml
+apiTitle: Skygear RBAC
+splitSpec: false
+codeSamples: false
+swaggerUI: false
+travis: true
+repo: oursky/skygear-rbac
+oasVersion: 3.0.1
