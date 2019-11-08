@@ -1,0 +1,499 @@
+openapi: 3.0.1
+info:
+  title: Skygear RBAC
+  description: Skygear RBAC API
+  version: 1.0.0
+servers:
+  - url: 'https://rbac.skygear.io/'
+  - url: 'http://rbac.skygear.io/'
+tags:
+  - name: policy
+    description: Everything about Policies
+paths:
+  '/{domain}':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - domain
+      operationId: getDomain
+      responses:
+        '200':
+          description: Get domain by id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+    post:
+      tags:
+        - domain
+      operationId: createDomain
+      requestBody:
+        description: Create domain
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Domain'
+      responses:
+        '200':
+          description: Domains created
+    put:
+      tags:
+        - domain
+      operationId: updateDomain
+      requestBody:
+        description: Update domain
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Domain'
+      responses:
+        '200':
+          description: Domains updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+    delete:
+      tags:
+        - domain
+      operationId: deleteDomain
+      summary: Delete domain
+      responses:
+        '200':
+          description: Deleted
+  '/{domain}/role/':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - role
+      operationId: getRolesOfDomain
+      summary: Get roles of domain
+      responses:
+        '200':
+          description: List of roles with corresponding domain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Roles'
+  '/{domain}/policy/':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - policy
+      operationId: getPoliciesOfDomain
+      summary: Get roles of domain
+      parameters:
+        - name: id
+          in: path
+          description: Subject
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: List of Policies with corresponding domain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policies'
+    post:
+      tags:
+        - policy
+      summary: Add / Update policies
+      operationId: updatePolicy
+      requestBody:
+        description: Add / Update policy
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Policies'
+      responses:
+        '200':
+          description: Add Policy succeeded
+    delete:
+      tags:
+        - policy
+      summary: Delete policy
+      operationId: deletePolicy
+      parameters:
+        - name: subject
+          in: query
+          description: Subject
+          schema:
+            type: string
+        - name: action
+          in: query
+          description: Action
+          schema:
+            type: string
+        - name: object
+          in: query
+          description: Object
+          schema:
+            type: string
+        - name: domain
+          in: query
+          description: Domain
+          schema:
+            type: string
+        - name: effect
+          in: query
+          description: Effect
+          schema:
+            type: string
+            enum:
+              - allow
+              - deny
+      responses:
+        '200':
+          description: Delete Policy succeeded
+  '/{domain}/subject/{id}/role/':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - subject
+      operationId: getRolesOfSubject
+      summary: Get roles of subject
+      parameters:
+        - name: id
+          in: path
+          description: Subject
+          schema:
+            type: string
+          required: true
+        - name: domain
+          in: query
+          description: Domain
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of roles with correspondig domain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Roles'
+    post:
+      tags:
+        - subject
+      operationId: assignRoles
+      summary: Assign roles to subject
+      parameters:
+        - name: id
+          in: path
+          description: Subject
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Roles to be assigned
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Roles'
+      responses:
+        '201':
+          description: Assigned
+  '/{domain}/subject/{id}/role/{roleId}':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    delete:
+      tags:
+        - subject
+      operationId: unassignRole
+      summary: Unassign role from subject
+      parameters:
+        - name: id
+          in: path
+          description: Subject
+          schema:
+            type: string
+          required: true
+        - name: roleId
+          in: path
+          description: Role
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Unassigned
+  /enforce:
+    get:
+      tags:
+        - enforce
+      summary: Enforce policy on one request
+      operationId: enforceRequest
+      parameters:
+        - name: subject
+          in: query
+          description: Subject
+          schema:
+            type: string
+        - name: action
+          in: query
+          description: Action
+          schema:
+            type: string
+        - name: object
+          in: query
+          description: Object
+          schema:
+            type: string
+        - name: domain
+          in: query
+          description: Domain
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '403':
+          description: Unauthorized
+    post:
+      tags:
+        - enforce
+      summary: Enforce on multiple requests
+      operationId: enforceRequests
+      requestBody:
+        description: Enforce requests
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Enforces'
+        required: true
+      responses:
+        '200':
+          description: Enforces result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnforcesResponse'
+  '/{domain}/role':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    post:
+      tags:
+        - role
+      summary: Create roles
+      operationId: createRoles
+      requestBody:
+        description: Create roles
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Roles'
+      responses:
+        '200':
+          description: Role created
+  '/{domain}/role/{id}/':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    delete:
+      tags:
+        - role
+      summary: Delete role
+      operationId: deleteRole
+      parameters:
+        - name: id
+          in: path
+          description: Subject
+          schema:
+            type: string
+          required: true
+        - name: domain
+          in: query
+          description: only delete role from specified domain
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Role deleted
+  '/{domain}/role/{id}/policy/':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - role
+      summary: Get policies of role
+      operationId: getPoliciesOfRole
+      parameters:
+        - name: id
+          in: path
+          description: Role
+          schema:
+            type: string
+          required: true
+        - name: domain
+          in: query
+          description: Domain
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Roles of subject
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+  '/{domain}/role/{id}/subject/':
+    parameters:
+      - name: domain
+        in: path
+        description: Domain
+        schema:
+          type: string
+        required: true
+    get:
+      tags:
+        - role
+      summary: Get subjects of role
+      operationId: getSubjectsOfRole
+      parameters:
+        - name: id
+          in: path
+          description: Role
+          schema:
+            type: string
+          required: true
+        - name: domain
+          in: query
+          description: Domain
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Subjects of role
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+components:
+  schemas:
+    Domain:
+      type: object
+      properties:
+        domain:
+          type: string
+        subdomains:
+          type: array
+          items:
+            type: string
+    Domains:
+      type: array
+      items:
+        $ref: '#/components/schemas/Domain'
+    Action:
+      type: string
+    Policy:
+      type: object
+      example:
+        domain: asia
+        subject: alice
+        object: 'dashboard:categories'
+        effect: deny
+      properties:
+        domain:
+          type: string
+        subject:
+          type: string
+        action:
+          type: string
+        object:
+          type: string
+        effect:
+          type: string
+          enum:
+            - allow
+            - deny
+    Roles:
+      type: array
+      items:
+        type: object
+        properties:
+          domain:
+            type: string
+          role:
+            type: string
+    Policies:
+      type: array
+      items:
+        $ref: '#/components/schemas/Policy'
+    UserRole:
+      type: object
+      properties:
+        subject:
+          type: string
+        role:
+          type: string
+    Enforces:
+      type: array
+      items:
+        $ref: '#/components/schemas/Enforce'
+    Enforce:
+      type: object
+      properties:
+        subject:
+          type: string
+        action:
+          type: string
+        object:
+          type: string
+    EnforcesResponse:
+      type: array
+      items:
+        properties:
+          enforce:
+            $ref: '#/components/schemas/Enforce'
+          permit:
+            type: boolean
+    Subject:
+      type: string
