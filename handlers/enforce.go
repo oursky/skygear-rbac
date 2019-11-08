@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -29,7 +30,11 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		if os.Getenv("ENV") != "development" {
-			h.Enforcer.LoadPolicy()
+			err := h.Enforcer.LoadPolicy()
+			if err != nil {
+				log.Fatal(err)
+				w.WriteHeader(502)
+			}
 		}
 
 		decoder := schema.NewDecoder()
@@ -37,23 +42,39 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err := decoder.Decode(&filter, r.URL.Query())
 
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
+			w.WriteHeader(409)
 		}
 
-		res, _ := h.Enforcer.Enforce(filter.Domain, filter.Subject, filter.Object, filter.Action)
+		res, err := h.Enforcer.Enforce(filter.Domain, filter.Subject, filter.Object, filter.Action)
+		if err != nil {
+			log.Fatal(err)
+			w.WriteHeader(502)
+		}
 		w.Write([]byte(strconv.FormatBool(res)))
 	case http.MethodPost:
 		if os.Getenv("ENV") != "development" {
-			h.Enforcer.LoadPolicy()
+			err := h.Enforcer.LoadPolicy()
+			if err != nil {
+				log.Fatal(err)
+				w.WriteHeader(502)
+			}
 		}
 
 		input := EnforcesInput{}
-		json.NewDecoder(r.Body).Decode(&input)
+		err := json.NewDecoder(r.Body).Decode(&input)
+		if err != nil {
+			log.Fatal(err)
+			w.WriteHeader(409)
+		}
 
 		var output EnforcesOutput
 
 		for _, enforce := range input {
-			permit, _ := h.Enforcer.Enforce(enforce.Domain, enforce.Subject, enforce.Object, enforce.Action)
+			permit, err := h.Enforcer.Enforce(enforce.Domain, enforce.Subject, enforce.Object, enforce.Action)
+			if err != nil {
+				log.Fatal(err)
+			}
 			output = append(output, permit)
 		}
 		js, _ := json.Marshal(output)

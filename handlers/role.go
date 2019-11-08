@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+	"os"
 
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
@@ -56,6 +58,13 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
+		if os.Getenv("ENV") != "development" {
+			err := h.Enforcer.LoadPolicy()
+			if err != nil {
+				log.Fatal(err)
+				w.WriteHeader(502)
+			}
+		}
 		decoder := schema.NewDecoder()
 		filter := RoleAssignment{}
 		err := decoder.Decode(&filter, r.URL.Query())
@@ -82,6 +91,13 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		js, _ := json.Marshal(roleAssignments)
 		w.Write(js)
 	case http.MethodPost:
+		if os.Getenv("ENV") != "development" {
+			err := h.Enforcer.LoadPolicy()
+			if err != nil {
+				log.Fatal(err)
+				w.WriteHeader(502)
+			}
+		}
 		inputs := RoleAssignmentsInput{}
 		json.NewDecoder(r.Body).Decode(&inputs)
 
@@ -122,6 +138,13 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		js, _ := json.Marshal(roleAssignments)
 		w.Write(js)
 	case http.MethodDelete:
+		if os.Getenv("ENV") != "development" {
+			err := h.Enforcer.LoadPolicy()
+			if err != nil {
+				log.Fatal(err)
+				w.WriteHeader(502)
+			}
+		}
 		decoder := schema.NewDecoder()
 		filter := RoleAssignment{}
 		err := decoder.Decode(&filter, r.URL.Query())

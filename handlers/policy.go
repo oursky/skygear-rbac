@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 
@@ -103,6 +104,14 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(js)
 		break
 	case http.MethodPost:
+		if os.Getenv("ENV") != "development" {
+			err := h.Enforcer.LoadPolicy()
+			if err != nil {
+				log.Fatal(err)
+				w.WriteHeader(502)
+			}
+		}
+
 		input := PoliciesInput{}
 		json.NewDecoder(r.Body).Decode(&input)
 
@@ -124,9 +133,16 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
 			}
 		}
-		w.WriteHeader(200)
 		h.Enforcer.SavePolicy()
+		w.WriteHeader(200)
 	case http.MethodDelete:
+		if os.Getenv("ENV") != "development" {
+			err := h.Enforcer.LoadPolicy()
+			if err != nil {
+				log.Fatal(err)
+				w.WriteHeader(502)
+			}
+		}
 		decoder := schema.NewDecoder()
 		filter := Policy{}
 		err := decoder.Decode(&filter, r.URL.Query())
@@ -143,7 +159,11 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		h.Enforcer.RemovePolicy(filter.ToArgs()...)
+		_, err = h.Enforcer.RemovePolicy(filter.ToArgs()...)
+		if err != nil {
+			log.Fatal(err)
+			w.WriteHeader(502)
+		}
 		h.Enforcer.SavePolicy()
 	}
 }

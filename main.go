@@ -25,14 +25,21 @@ func main() {
 
 	var e *casbin.Enforcer
 	if os.Getenv("ENV") == "development" {
-		e, _ = casbin.NewEnforcer("./model.conf", "./policy.csv")
+		var err error
+		e, err = casbin.NewEnforcer("./model.conf", "./policy.csv")
+		if err != nil {
+			log.Panic(err)
+		}
 	} else {
 		params, _ := pq.ParseURL(dbURL)
 		a, err := xormadapter.NewAdapter("postgres", params)
 		if err != nil {
-			log.Fatal(err)
+			log.Panic(err)
 		}
-		e, _ = casbin.NewEnforcer("./model.conf", a)
+		e, err = casbin.NewEnforcer("./model.conf", a)
+		if err != nil {
+			log.Panic(err)
+		}
 	}
 
 	e.LoadPolicy()
@@ -50,6 +57,6 @@ func main() {
 	r.Handle("/{domain}/policy", &handlers.PolicyHandler{Enforcer: e})
 	r.Handle("/{domain}", &handlers.DomainHandler{Enforcer: e})
 
-	log.Println("RBAC listening on 6543")
+	log.Println("RBAC listening on 6543 🚀")
 	log.Fatal(http.ListenAndServe(":6543", r))
 }
