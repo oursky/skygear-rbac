@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 
 	casbin "github.com/casbin/casbin/v2"
@@ -29,14 +28,6 @@ type EnforceHandler struct {
 func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		if os.Getenv("ENV") != "development" {
-			err := h.Enforcer.LoadPolicy()
-			if err != nil {
-				log.Fatal(err)
-				w.WriteHeader(502)
-			}
-		}
-
 		decoder := schema.NewDecoder()
 		filter := EnforceInput{}
 		err := decoder.Decode(&filter, r.URL.Query())
@@ -53,14 +44,6 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write([]byte(strconv.FormatBool(res)))
 	case http.MethodPost:
-		if os.Getenv("ENV") != "development" {
-			err := h.Enforcer.LoadPolicy()
-			if err != nil {
-				log.Fatal(err)
-				w.WriteHeader(502)
-			}
-		}
-
 		input := EnforcesInput{}
 		err := json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {

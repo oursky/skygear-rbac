@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
@@ -73,10 +72,6 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		if os.Getenv("ENV") != "development" {
-			h.Enforcer.LoadPolicy()
-		}
-
 		decoder := schema.NewDecoder()
 		filter := Policy{}
 		err := decoder.Decode(&filter, r.URL.Query())
@@ -104,14 +99,6 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Write(js)
 		break
 	case http.MethodPost:
-		if os.Getenv("ENV") != "development" {
-			err := h.Enforcer.LoadPolicy()
-			if err != nil {
-				log.Fatal(err)
-				w.WriteHeader(502)
-			}
-		}
-
 		input := PoliciesInput{}
 		json.NewDecoder(r.Body).Decode(&input)
 
@@ -136,13 +123,6 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.Enforcer.SavePolicy()
 		w.WriteHeader(200)
 	case http.MethodDelete:
-		if os.Getenv("ENV") != "development" {
-			err := h.Enforcer.LoadPolicy()
-			if err != nil {
-				log.Fatal(err)
-				w.WriteHeader(502)
-			}
-		}
 		decoder := schema.NewDecoder()
 		filter := Policy{}
 		err := decoder.Decode(&filter, r.URL.Query())

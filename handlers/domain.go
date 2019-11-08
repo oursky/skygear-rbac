@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 
@@ -33,13 +32,6 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		if os.Getenv("ENV") != "development" {
-			err := h.Enforcer.LoadPolicy()
-			if err != nil {
-				log.Fatal(err)
-				w.WriteHeader(502)
-			}
-		}
 		decoder := schema.NewDecoder()
 		filter := Domain{}
 		err := decoder.Decode(&filter, r.URL.Query())
@@ -64,13 +56,6 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write(js)
 		}
 	case http.MethodPost:
-		if os.Getenv("ENV") != "development" {
-			err := h.Enforcer.LoadPolicy()
-			if err != nil {
-				log.Fatal(err)
-				w.WriteHeader(502)
-			}
-		}
 		input := DomainInput{}
 		json.NewDecoder(r.Body).Decode(&input)
 
@@ -97,13 +82,6 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		h.Enforcer.SavePolicy()
 	case http.MethodDelete:
-		if os.Getenv("ENV") != "development" {
-			err := h.Enforcer.LoadPolicy()
-			if err != nil {
-				log.Fatal(err)
-				w.WriteHeader(502)
-			}
-		}
 		decoder := schema.NewDecoder()
 		filter := Domain{}
 		err := decoder.Decode(&filter, r.URL.Query())
