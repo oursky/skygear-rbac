@@ -34,7 +34,7 @@ func ReloadEnforcer(e *casbin.Enforcer) (*casbin.Enforcer, error) {
 		params, _ := pq.ParseURL(dbURL)
 		a, err := xormadapter.NewAdapter("postgres", params)
 		if err != nil {
-			return e, err
+			return nil, err
 		}
 		e, err = casbin.NewEnforcer("./model.conf", a)
 		if err != nil {
@@ -53,7 +53,7 @@ func ReloadEnforcer(e *casbin.Enforcer) (*casbin.Enforcer, error) {
 func main() {
 	var e *casbin.Enforcer
 
-	_, err := ReloadEnforcer(e)
+	e, err := ReloadEnforcer(e)
 	if err != nil {
 		log.Panic(err)
 	}
