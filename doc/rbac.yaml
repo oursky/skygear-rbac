@@ -10,6 +10,15 @@ tags:
 - name: policy
   description: Everything about Policies
 paths:
+  /reload:
+    post:
+      tags:
+      - policy
+      summary: Reloads policy from database
+      operationId: reload
+      responses:
+        200:
+          description: Roles of user
   /{domain}:
     parameters: 
         - name: domain

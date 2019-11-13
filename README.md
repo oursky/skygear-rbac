@@ -26,8 +26,8 @@ docker run -e "DATABASE_URL=abc" oursky/skygear-rbac:latest
     (g(r.sub, p.sub, 'root') || (r.sub == p.sub && r.domain == 'root')) # request subject is assigned role/is the role in root
   )
 ) &&
-r.obj == p.obj &&  # request object matches policy
-r.act == p.act && # request action matches policy
+(r.obj == p.obj || p.obj == '.*') &&  # request object matches policy
+(r.act == p.act || p.act == '.*') && # request action matches policy
 !g4(r.sub, 'disabled') && # subject in request is not disabled / archived
 !g4(p.sub, 'disabled') # subject in policy is not disabled / archived
 ```

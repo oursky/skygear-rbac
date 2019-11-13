@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
-	"os"
 
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
@@ -72,10 +72,6 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		if os.Getenv("ENV") != "development" {
-			h.Enforcer.LoadPolicy()
-		}
-
 		decoder := schema.NewDecoder()
 		filter := Policy{}
 		err := decoder.Decode(&filter, r.URL.Query())
@@ -124,8 +120,8 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
 			}
 		}
-		w.WriteHeader(200)
 		h.Enforcer.SavePolicy()
+		w.WriteHeader(200)
 	case http.MethodDelete:
 		decoder := schema.NewDecoder()
 		filter := Policy{}
@@ -143,7 +139,11 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		h.Enforcer.RemovePolicy(filter.ToArgs()...)
+		_, err = h.Enforcer.RemovePolicy(filter.ToArgs()...)
+		if err != nil {
+			log.Fatal(err)
+			w.WriteHeader(502)
+		}
 		h.Enforcer.SavePolicy()
 	}
 }
