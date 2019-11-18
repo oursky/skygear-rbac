@@ -5,7 +5,7 @@ import (
 	"html"
 	"log"
 	"net/http"
-	"os"
+	"skygear-rbac/config"
 	handlers "skygear-rbac/handlers"
 
 	"github.com/gorilla/mux"
@@ -16,44 +16,38 @@ import (
 	pq "github.com/lib/pq"
 )
 
-// ReloadEnforcer accepts enforcer and reloads model and policy for it
-func ReloadEnforcer(e *casbin.Enforcer) (*casbin.Enforcer, error) {
-	dbURL := "postgres://postgres:@db?sslmode=disable"
-
-	if len(os.Getenv("DATABASE_URL")) != 0 {
-		dbURL = os.Getenv("DATABASE_URL")
-	}
-
-	if os.Getenv("ENV") == "development" {
-		var err error
-		e, err = casbin.NewEnforcer("./model.conf", "./policy.csv")
-		if err != nil {
-			return e, err
-		}
-	} else {
-		params, _ := pq.ParseURL(dbURL)
-		a, err := xormadapter.NewAdapter("postgres", params)
+func newEnforcer() (*casbin.Enforcer, error) {
+	if config.LoadFromEnv("ENV", "") == "development" {
+		enforcer, err := casbin.NewEnforcer("./model.conf", "./policy.csv")
 		if err != nil {
 			return nil, err
 		}
-		e, err = casbin.NewEnforcer("./model.conf", a)
-		if err != nil {
-			return e, err
-		}
+		return enforcer, nil
 	}
 
-	err := e.LoadPolicy()
+	databaseURL := config.LoadFromEnv("DATABASE_URL", "postgres://postgres:@db?sslmode=disable")
+	params, _ := pq.ParseURL(databaseURL)
+	adapter, err := xormadapter.NewAdapter("postgres", params)
 	if err != nil {
-		return e, err
+		return nil, err
 	}
+	enforcer, err := casbin.NewEnforcer("./model.conf", adapter)
+	if err != nil {
+		return nil, err
+	}
+	return enforcer, nil
+}
 
-	return e, nil
+func reloadEnforcer(enforcer *casbin.Enforcer) error {
+	return enforcer.LoadPolicy()
 }
 
 func main() {
-	var e *casbin.Enforcer
-
-	e, err := ReloadEnforcer(e)
+	enforcer, err := newEnforcer()
+	if err != nil {
+		log.Panic(err)
+	}
+	err = reloadEnforcer(enforcer)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -64,20 +58,20 @@ func main() {
 	})
 	// For reloading policy / model if it is updated externally e.g. Directly updated rules in database
 	r.HandleFunc("/reload", func(w http.ResponseWriter, r *http.Request) {
-		_, err := ReloadEnforcer(e)
+		err := reloadEnforcer(enforcer)
 		if err != nil {
 			log.Fatal(err)
 			w.WriteHeader(502)
 		}
 	})
-	r.Handle("/enforce", &handlers.EnforceHandler{Enforcer: e})
-	r.Handle("/{domain}/subject/{subject}/role", &handlers.RoleHandler{Enforcer: e})
-	r.Handle("/{domain}/role/{role}/policy", &handlers.PolicyHandler{Enforcer: e})
-	r.Handle("/{domain}/role/{role}/subject", &handlers.SubjectHandler{Enforcer: e})
-	r.Handle("/{domain}/role/{role}/user", &handlers.UserHandler{Enforcer: e})
-	r.Handle("/{domain}/role", &handlers.RoleHandler{Enforcer: e})
-	r.Handle("/{domain}/policy", &handlers.PolicyHandler{Enforcer: e})
-	r.Handle("/{domain}", &handlers.DomainHandler{Enforcer: e})
+	r.Handle("/enforce", &handlers.EnforceHandler{Enforcer: enforcer})
+	r.Handle("/{domain}/subject/{subject}/role", &handlers.RoleHandler{Enforcer: enforcer})
+	r.Handle("/{domain}/role/{role}/policy", &handlers.PolicyHandler{Enforcer: enforcer})
+	r.Handle("/{domain}/role/{role}/subject", &handlers.SubjectHandler{Enforcer: enforcer})
+	r.Handle("/{domain}/role/{role}/user", &handlers.UserHandler{Enforcer: enforcer})
+	r.Handle("/{domain}/role", &handlers.RoleHandler{Enforcer: enforcer})
+	r.Handle("/{domain}/policy", &handlers.PolicyHandler{Enforcer: enforcer})
+	r.Handle("/{domain}", &handlers.DomainHandler{Enforcer: enforcer})
 
 	log.Println("RBAC listening on 6543 🚀")
 	log.Fatal(http.ListenAndServe(":6543", r))
