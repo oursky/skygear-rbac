@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"skygear-rbac/config"
 	handlers "skygear-rbac/handlers"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -14,6 +15,10 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	pq "github.com/lib/pq"
+)
+
+const (
+	enforcerInitializeRetryCount = 3
 )
 
 func newEnforcer() (*casbin.Enforcer, error) {
@@ -26,8 +31,23 @@ func newEnforcer() (*casbin.Enforcer, error) {
 	}
 
 	databaseURL := config.LoadFromEnv("DATABASE_URL", "postgres://postgres:@db?sslmode=disable")
-	params, _ := pq.ParseURL(databaseURL)
-	adapter, err := xormadapter.NewAdapter("postgres", params)
+	params, err := pq.ParseURL(databaseURL)
+	if err != nil {
+		return nil, err
+	}
+	adapter, err := func() (*xormadapter.Adapter, error) {
+		var err error
+		for i := 0; i < enforcerInitializeRetryCount; i++ {
+			a, e := xormadapter.NewAdapter("postgres", params)
+			if e == nil {
+				return a, nil
+			}
+			err = e
+			log.Println("🔌 RBAC failed to connect db, retrying...")
+			time.Sleep(time.Second)
+		}
+		return nil, err
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +83,7 @@ func main() {
 			log.Fatal(err)
 			w.WriteHeader(502)
 		}
+		log.Println("♻ RBAC reloaded enforcer")
 	})
 	r.Handle("/enforce", &handlers.EnforceHandler{Enforcer: enforcer})
 	r.Handle("/{domain}/subject/{subject}/role", &handlers.RoleHandler{Enforcer: enforcer})
@@ -73,6 +94,6 @@ func main() {
 	r.Handle("/{domain}/policy", &handlers.PolicyHandler{Enforcer: enforcer})
 	r.Handle("/{domain}", &handlers.DomainHandler{Enforcer: enforcer})
 
-	log.Println("RBAC listening on 6543 🚀")
+	log.Println("🚀 RBAC listening on 6543")
 	log.Fatal(http.ListenAndServe(":6543", r))
 }
