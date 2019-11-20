@@ -6,13 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	enforcer "skygear-rbac/enforcer"
 	"testing"
-
-	"github.com/casbin/casbin/v2"
 )
 
 func TestGetDomains(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./domain_test.policy.csv",
+	})
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)
@@ -46,7 +48,9 @@ func TestGetDomains(t *testing.T) {
 }
 
 func TestCreateDomains(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model: "../model.conf",
+	})
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)
@@ -99,7 +103,10 @@ func TestCreateDomains(t *testing.T) {
 }
 
 func TestDeleteDomainSubject(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./domain_test.policy.csv",
+	})
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)
@@ -125,7 +132,10 @@ func TestDeleteDomainSubject(t *testing.T) {
 }
 
 func TestDeleteDomain(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./domain_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./domain_test.policy.csv",
+	})
 
 	handler := &DomainHandler{e}
 	server := httptest.NewServer(handler)

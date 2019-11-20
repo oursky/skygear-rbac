@@ -7,10 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	enforcer "skygear-rbac/enforcer"
 	"strconv"
 	"testing"
-
-	"github.com/casbin/casbin/v2"
 )
 
 var cases = []struct {
@@ -61,7 +60,10 @@ var cases = []struct {
 }
 
 func TestEnforcePolicy(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./enforce_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./enforce_test.policy.csv",
+	})
 
 	handler := &EnforceHandler{e}
 	server := httptest.NewServer(handler)
@@ -97,7 +99,10 @@ func TestEnforcePolicy(t *testing.T) {
 }
 
 func TestBatchEnforcePolicy(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./enforce_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./enforce_test.policy.csv",
+	})
 
 	handler := &EnforceHandler{e}
 	server := httptest.NewServer(handler)

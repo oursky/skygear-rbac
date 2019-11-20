@@ -6,64 +6,28 @@ import (
 	"log"
 	"net/http"
 	"skygear-rbac/config"
+	"skygear-rbac/enforcer"
 	handlers "skygear-rbac/handlers"
-	"time"
-
-	"github.com/gorilla/mux"
-
-	xormadapter "github.com/casbin/xorm-adapter"
 
 	"github.com/casbin/casbin/v2"
-	pq "github.com/lib/pq"
+	"github.com/gorilla/mux"
 )
-
-const (
-	enforcerInitializeRetryCount = 3
-)
-
-func newEnforcer() (*casbin.Enforcer, error) {
-	if config.LoadFromEnv("ENV", "") == "development" {
-		enforcer, err := casbin.NewEnforcer("./model.conf", "./policy.csv")
-		if err != nil {
-			return nil, err
-		}
-		return enforcer, nil
-	}
-
-	databaseURL := config.LoadFromEnv("DATABASE_URL", "postgres://postgres:@db?sslmode=disable")
-	params, err := pq.ParseURL(databaseURL)
-	if err != nil {
-		return nil, err
-	}
-	adapter, err := func() (*xormadapter.Adapter, error) {
-		var err error
-		for i := 0; i < enforcerInitializeRetryCount; i++ {
-			a, e := xormadapter.NewAdapter("postgres", params)
-			if e == nil {
-				return a, nil
-			}
-			err = e
-			log.Println("🔌 RBAC failed to connect db, retrying...")
-			time.Sleep(time.Second)
-		}
-		return nil, err
-	}()
-	if err != nil {
-		return nil, err
-	}
-	enforcer, err := casbin.NewEnforcer("./model.conf", adapter)
-	if err != nil {
-		return nil, err
-	}
-	return enforcer, nil
-}
 
 func reloadEnforcer(enforcer *casbin.Enforcer) error {
 	return enforcer.LoadPolicy()
 }
 
 func main() {
-	enforcer, err := newEnforcer()
+	var enforcerConfig = enforcer.Config{}
+
+	if config.LoadFromEnv("ENV", "") == "development" {
+		enforcerConfig = enforcer.Config{
+			Model:  "./model.conf",
+			Policy: "./policy.csv",
+		}
+	}
+
+	enforcer, err := enforcer.NewEnforcer(enforcerConfig)
 	if err != nil {
 		log.Panic(err)
 	}
