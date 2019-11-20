@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"skygear-rbac/constants"
 
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
@@ -40,11 +41,12 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Role = role
 		}
 
-		raw := h.Enforcer.GetFilteredGroupingPolicy(2, filter.Domain)
+		raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 2, filter.Domain)
 		groups := filters.Choose(GroupsFromCasbin(raw), func(g Group) bool {
 			return ((len(filter.Domain) == 0 || filter.Domain == g.Domain) &&
+				g.Domain != constants.IsDomain &&
 				(len(filter.Role) == 0 || filter.Role == g.Role) &&
-				(g.Subject != NoSubject) &&
+				(g.Subject != constants.NoSubject) &&
 				(!h.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "role", g.Domain) || h.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "user", g.Domain)))
 		})
 		var Users []string

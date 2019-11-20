@@ -3,6 +3,7 @@ package enforcer
 import (
 	"log"
 	"skygear-rbac/config"
+	"skygear-rbac/functions"
 	"time"
 
 	"github.com/casbin/casbin/v2"
@@ -31,10 +32,10 @@ func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
 				return nil, err
 			}
 		} else {
-		enforcer, err = casbin.NewEnforcer(enforcerConfig.Model)
-		if err != nil {
-			return nil, err
-		}
+			enforcer, err = casbin.NewEnforcer(enforcerConfig.Model)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		databaseURL := config.LoadFromEnv("DATABASE_URL", "postgres://postgres:@db?sslmode=disable")
@@ -63,6 +64,8 @@ func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
 			return nil, err
 		}
 	}
+
+	enforcer.AddFunction("isAssignedRoleInParentDomain", functions.CreateIsAssignedRoleInParentDomain(enforcer))
 
 	return enforcer, nil
 }

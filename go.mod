@@ -3,7 +3,7 @@ module skygear-rbac
 go 1.12
 
 require (
-	github.com/casbin/casbin/v2 v2.0.1
+	github.com/casbin/casbin/v2 v2.1.1
 	github.com/casbin/xorm-adapter v0.0.0-20190806085643-0629743c2857
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/schema v1.1.0

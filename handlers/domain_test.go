@@ -124,7 +124,7 @@ func TestDeleteDomainSubject(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	aliceDomains := e.GetFilteredNamedGroupingPolicy("g2", 1, "alice")
+	aliceDomains := e.GetFilteredNamedGroupingPolicy("g", 1, "alice")
 	if len(aliceDomains) != 0 {
 		t.Errorf("Expected alice removed from domain groups")
 		t.Errorf("Received '%s'\n", aliceDomains)
@@ -153,7 +153,7 @@ func TestDeleteDomain(t *testing.T) {
 	if res.StatusCode != 200 {
 		t.Fatalf("Received non-200 response: %d\n", res.StatusCode)
 	}
-	aliceDomains := e.GetFilteredNamedGroupingPolicy("g2", 0, "domain:hk")
+	aliceDomains := e.GetFilteredNamedGroupingPolicy("g", 0, "domain:hk")
 	if len(aliceDomains) != 0 {
 		t.Errorf("Expected domain:hk removed from domain groups")
 		t.Errorf("Received '%s'\n", aliceDomains)
