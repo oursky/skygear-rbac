@@ -20,10 +20,10 @@ docker run -e "DATABASE_URL=abc" oursky/skygear-rbac:latest
 
 ```golang
 (
-  (r.domain == p.domain || g2('root', r.sub)) && # request domain is SAME as policy domain (to disable inheritance)
+  (g(r.domain, p.domain) || g('root', r.sub)) && # request domain is SAME as policy domain (to disable inheritance of access rights)
   (
-    (g(r.sub, p.sub, r.domain) || (r.sub == p.sub && r.domain == p.domain)) || # request subject is assigned role/is the role in domain
-    (g(r.sub, p.sub, 'root') || (r.sub == p.sub && r.domain == 'root')) # request subject is assigned role/is the role in root
+    (g2(r.sub, p.sub, r.domain) || (r.sub == p.sub && r.domain == p.domain)) || # request subject is assigned role/is the role in domain
+    (g2(r.sub, p.sub, 'root') || (r.sub == p.sub && r.domain == 'root')) # request subject is assigned role/is the role in root
   )
 ) &&
 (r.obj == p.obj || p.obj == '.*') &&  # request object matches policy

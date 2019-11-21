@@ -8,6 +8,8 @@ import (
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
+
+	"skygear-rbac/constants"
 )
 
 type Domain struct {
@@ -43,10 +45,12 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(filter.Domain) != 0 {
-			raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g2", 1, filter.Domain)
+			raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, filter.Domain)
 			subdomains := []string{}
 			for _, policy := range raw {
-				subdomains = append(subdomains, policy[0])
+				if policy[2] == constants.IsDomain {
+					subdomains = append(subdomains, policy[1])
+				}
 			}
 			domain := &Domain{
 				Domain:     filter.Domain,
@@ -66,17 +70,17 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if len(input.Parent) == 0 {
 			input.Parent = "root"
 		}
-		h.Enforcer.AddNamedGroupingPolicy("g2", input.Domain, input.Parent)
+		h.Enforcer.AddNamedGroupingPolicy("g", input.Parent, input.Domain, constants.IsDomain)
 
 		if len(input.SubDomains) != 0 {
 			for _, subdomain := range input.SubDomains {
-				h.Enforcer.AddNamedGroupingPolicy("g2", subdomain, input.Domain)
+				h.Enforcer.AddNamedGroupingPolicy("g", input.Domain, subdomain, constants.IsDomain)
 			}
 		}
 
 		if len(input.Subjects) != 0 {
 			for _, subject := range input.Subjects {
-				h.Enforcer.AddNamedGroupingPolicy("g2", input.Domain, subject)
+				h.Enforcer.AddNamedGroupingPolicy("g", subject, input.Domain, constants.IsDomain)
 			}
 		}
 
@@ -93,10 +97,10 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(filter.Subject) != 0 {
-			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 1, filter.Subject)
+			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g", 0, filter.Subject)
 		} else if len(filter.Domain) != 0 {
-			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 0, filter.Domain)
-			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g2", 1, filter.Domain)
+			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g", 0, filter.Domain)
+			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g", 1, filter.Domain)
 		}
 		if os.Getenv("ENV") != "development" {
 			h.Enforcer.SavePolicy()

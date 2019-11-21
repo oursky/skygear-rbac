@@ -5,13 +5,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	enforcer "skygear-rbac/enforcer"
 	"testing"
-
-	"github.com/casbin/casbin/v2"
 )
 
 func TestGetSubjects(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./role_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./role_test.policy.csv",
+	})
 
 	handler := &SubjectHandler{e}
 	server := httptest.NewServer(handler)

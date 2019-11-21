@@ -8,6 +8,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	filters "robpike.io/filter"
+
+	"skygear-rbac/constants"
 )
 
 type Group struct {
@@ -59,11 +61,13 @@ func (h *SubjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Role = role
 		}
 
-		raw := h.Enforcer.GetFilteredGroupingPolicy(2, filter.Domain)
+		raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 2, filter.Domain)
+
 		groups := filters.Choose(GroupsFromCasbin(raw), func(g Group) bool {
 			return ((len(filter.Domain) == 0 || filter.Domain == g.Domain) &&
+				g.Domain != constants.IsDomain &&
 				(len(filter.Role) == 0 || filter.Role == g.Role) &&
-				(g.Subject != NoSubject))
+				(g.Subject != constants.NoSubject))
 		})
 		var subjects []string
 		for _, group := range groups.([]Group) {

@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	enforcer "skygear-rbac/enforcer"
 	"testing"
-
-	"github.com/casbin/casbin/v2"
 )
 
 func TestGetAndDeletePolicy(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model: "../model.conf",
+	})
 
 	fakePolicy := Policy{
 		Domain:  "root",
@@ -74,7 +75,9 @@ func TestGetAndDeletePolicy(t *testing.T) {
 }
 
 func TestAddPolicy(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model: "../model.conf",
+	})
 
 	handler := &PolicyHandler{e}
 	server := httptest.NewServer(handler)

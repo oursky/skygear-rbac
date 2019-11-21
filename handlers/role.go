@@ -8,9 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	filters "robpike.io/filter"
-)
 
-const NoSubject = "__nosubject__"
+	"skygear-rbac/constants"
+)
 
 func RoleAssignmentsFromCasbin(raw [][]string) []RoleAssignment {
 	ras := []RoleAssignment{}
@@ -22,7 +22,7 @@ func RoleAssignmentsFromCasbin(raw [][]string) []RoleAssignment {
 			Domain:  s[2],
 		}
 
-		if ra.Subject == NoSubject {
+		if ra.Subject == constants.NoSubject {
 			ra.Subject = ""
 		}
 		ras = append(ras, ra)
@@ -72,10 +72,10 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(filter.Subject) == 0 {
-			filter.Subject = NoSubject
+			filter.Subject = constants.NoSubject
 		}
 
-		raw := h.Enforcer.GetFilteredGroupingPolicy(0, filter.Subject)
+		raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, filter.Subject)
 		roleAssignments := filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
 			return (len(filter.Domain) == 0 || filter.Domain == ra.Domain)
 		})
@@ -97,20 +97,16 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if len(input.Subject) == 0 {
-				input.Subject = NoSubject
+				input.Subject = constants.NoSubject
 			}
 
 			if input.Unassign {
-				h.Enforcer.RemoveGroupingPolicy(input.Subject, input.Role, input.Domain)
+				h.Enforcer.RemoveNamedGroupingPolicy("g", input.Subject, input.Role, input.Domain)
 			} else {
-				h.Enforcer.AddGroupingPolicy(input.Subject, input.Role, input.Domain)
+				h.Enforcer.AddNamedGroupingPolicy("g", input.Subject, input.Role, input.Domain)
 			}
 
-			h.Enforcer.AddNamedGroupingPolicy("g3", input.Role, "role", input.Domain)
-			// if input.Subject == NoSubject {
-			// 	h.Enforcer.RemoveNamedGroupingPolicy("g4", input.Role, "disabled", input.Domain)
-			// }
-			raw := h.Enforcer.GetFilteredGroupingPolicy(0, input.Subject)
+			raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, input.Subject)
 			for _, assignment := range filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
 				return (len(input.Domain) == 0 || input.Domain == ra.Domain)
 			}).([]RoleAssignment) {
@@ -139,12 +135,12 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(filter.Subject) == 0 {
-			filter.Subject = NoSubject
+			filter.Subject = constants.NoSubject
 		}
 
-		h.Enforcer.RemoveGroupingPolicy(filter.Subject, filter.Role, filter.Domain)
+		h.Enforcer.RemoveNamedGroupingPolicy("g", filter.Subject, filter.Role, filter.Domain)
 
-		if filter.Subject == NoSubject {
+		if filter.Subject == constants.NoSubject {
 			h.Enforcer.AddNamedGroupingPolicy("g4", filter.Subject, "disabled", filter.Domain)
 		}
 

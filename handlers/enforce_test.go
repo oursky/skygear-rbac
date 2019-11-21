@@ -7,10 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	enforcer "skygear-rbac/enforcer"
 	"strconv"
 	"testing"
-
-	"github.com/casbin/casbin/v2"
 )
 
 var cases = []struct {
@@ -29,17 +28,17 @@ var cases = []struct {
 		ExpectPermit: true,
 	},
 	{
-		Description: "Permission-role inheritance case: should fail because alice in asia and only hk allows admin to write form",
+		Description: "ALLOW Role assignment inheritance: should pass because alice is world admin and hk admin can write form",
 		Request: EnforceInput{
 			Domain:  "domain:hk",
 			Subject: "alice",
 			Action:  "write",
 			Object:  "form",
 		},
-		ExpectPermit: false,
+		ExpectPermit: true,
 	},
 	{
-		Description: "DISALLOW Role assignment inheritance: should fail because billy is hk admin and only asia admin can delete form",
+		Description: "DISALLOW Role assignment propogation: should fail because billy is hk admin and only asia admin can delete form",
 		Request: EnforceInput{
 			Domain:  "domain:hk",
 			Subject: "billy",
@@ -61,7 +60,10 @@ var cases = []struct {
 }
 
 func TestEnforcePolicy(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./enforce_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./enforce_test.policy.csv",
+	})
 
 	handler := &EnforceHandler{e}
 	server := httptest.NewServer(handler)
@@ -97,7 +99,10 @@ func TestEnforcePolicy(t *testing.T) {
 }
 
 func TestBatchEnforcePolicy(t *testing.T) {
-	e, _ := casbin.NewEnforcer("../model.conf", "./enforce_test.policy.csv")
+	e, _ := enforcer.NewEnforcer(enforcer.Config{
+		Model:  "../model.conf",
+		Policy: "./enforce_test.policy.csv",
+	})
 
 	handler := &EnforceHandler{e}
 	server := httptest.NewServer(handler)
