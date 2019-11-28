@@ -13,7 +13,7 @@ import (
 func TestGetDomains(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./domain_test.policy.csv",
+		File: "./domain_test.policy.csv",
 	})
 
 	handler := &DomainHandler{e}
@@ -105,7 +105,7 @@ func TestCreateDomains(t *testing.T) {
 func TestDeleteDomainSubject(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./domain_test.policy.csv",
+		File: "./domain_test.policy.csv",
 	})
 
 	handler := &DomainHandler{e}
@@ -134,7 +134,7 @@ func TestDeleteDomainSubject(t *testing.T) {
 func TestDeleteDomain(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./domain_test.policy.csv",
+		File: "./domain_test.policy.csv",
 	})
 
 	handler := &DomainHandler{e}

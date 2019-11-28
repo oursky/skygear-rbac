@@ -19,13 +19,15 @@ func reloadEnforcer(enforcer *casbin.Enforcer) error {
 
 func main() {
 	var enforcerConfig = enforcer.Config{
-		Model: "./model.conf",
+		Model:    "./model.conf",
+		Database: config.LoadFromEnv("DATABASE_URL", ""),
+		File:     config.LoadFromEnv("POLICY_PATH", ""),
 	}
 
 	if config.LoadFromEnv("ENV", "") == "development" {
 		enforcerConfig = enforcer.Config{
-			Model:  "./model.conf",
-			Policy: "./policy.csv",
+			Model: "./model.conf",
+			File:  "./policy.csv",
 		}
 	}
 
