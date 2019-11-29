@@ -45,14 +45,7 @@ func main() {
 		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 	})
 	// For reloading policy / model if it is updated externally e.g. Directly updated rules in database
-	r.HandleFunc("/reload", func(w http.ResponseWriter, r *http.Request) {
-		err := reloadEnforcer(enforcer)
-		if err != nil {
-			log.Fatal(err)
-			w.WriteHeader(502)
-		}
-		log.Println("♻ RBAC reloaded enforcer")
-	})
+	r.Handle("/reload", &handlers.ReloadHandler{Enforcer: enforcer})
 	r.Handle("/enforce", &handlers.EnforceHandler{Enforcer: enforcer})
 	r.Handle("/{domain}/subject/{subject}/role", &handlers.RoleHandler{Enforcer: enforcer})
 	r.Handle("/{domain}/role/{role}/policy", &handlers.PolicyHandler{Enforcer: enforcer})
