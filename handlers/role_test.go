@@ -13,7 +13,7 @@ import (
 func TestGetRoles(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./role_test.policy.csv",
+		File: "./role_test.policy.csv",
 	})
 
 	fakeRoleAssignments := []RoleAssignment{
@@ -55,7 +55,7 @@ func TestGetRoles(t *testing.T) {
 func TestAssignThenRemoveRole(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./role_test.policy.csv",
+		File: "./role_test.policy.csv",
 	})
 
 	handler := &RoleHandler{e}

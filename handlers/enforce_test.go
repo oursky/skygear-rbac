@@ -62,7 +62,7 @@ var cases = []struct {
 func TestEnforcePolicy(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./enforce_test.policy.csv",
+		File: "./enforce_test.policy.csv",
 	})
 
 	handler := &EnforceHandler{e}
@@ -101,7 +101,7 @@ func TestEnforcePolicy(t *testing.T) {
 func TestBatchEnforcePolicy(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./enforce_test.policy.csv",
+		File: "./enforce_test.policy.csv",
 	})
 
 	handler := &EnforceHandler{e}

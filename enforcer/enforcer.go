@@ -2,7 +2,6 @@ package enforcer
 
 import (
 	"log"
-	"skygear-rbac/config"
 	"skygear-rbac/functions"
 	"time"
 
@@ -13,8 +12,9 @@ import (
 
 // Config configuration for initializing casbin Enforcer
 type Config struct {
-	Model  string
-	Policy string
+	Model    string
+	File     string
+	Database string
 }
 
 const (
@@ -25,21 +25,8 @@ const (
 func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
 	var enforcer *casbin.Enforcer
 	var err error
-	if config.LoadFromEnv("ENV", "") == "development" {
-		if enforcerConfig.Policy != "" {
-			enforcer, err = casbin.NewEnforcer(enforcerConfig.Model, enforcerConfig.Policy)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			enforcer, err = casbin.NewEnforcer(enforcerConfig.Model)
-			if err != nil {
-				return nil, err
-			}
-		}
-	} else {
-		databaseURL := config.LoadFromEnv("DATABASE_URL", "postgres://postgres:@db?sslmode=disable")
-		params, err := pq.ParseURL(databaseURL)
+	if len(enforcerConfig.Database) != 0 {
+		params, err := pq.ParseURL(enforcerConfig.Database)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +50,21 @@ func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else if len(enforcerConfig.File) != 0 {
+		log.Printf("📒 RBAC is using CSV storage %s \n", enforcerConfig.File)
+		enforcer, err = casbin.NewEnforcer(enforcerConfig.Model, enforcerConfig.File)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Println("🧠 RBAC does not detect any storage setting, using In-Memory")
+		enforcer, err = casbin.NewEnforcer(enforcerConfig.Model)
+		if err != nil {
+			return nil, err
+		}
 	}
+
+	enforcer.EnableAutoSave(true)
 
 	enforcer.AddFunction("isAssignedRoleInParentDomain", functions.CreateIsAssignedRoleInParentDomain(enforcer))
 

@@ -12,7 +12,7 @@ import (
 func TestGetSubjects(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
 		Model:  "../model.conf",
-		Policy: "./role_test.policy.csv",
+		File: "./role_test.policy.csv",
 	})
 
 	handler := &SubjectHandler{e}
