@@ -120,7 +120,6 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
 			}
 		}
-		h.Enforcer.SavePolicy()
 		w.WriteHeader(200)
 	case http.MethodDelete:
 		decoder := schema.NewDecoder()
@@ -144,6 +143,5 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 			w.WriteHeader(502)
 		}
-		h.Enforcer.SavePolicy()
 	}
 }

@@ -98,7 +98,5 @@ func (h *ReloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-
-		h.Enforcer.SavePolicy()
 	}
 }

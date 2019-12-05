@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
@@ -83,8 +82,6 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.Enforcer.AddNamedGroupingPolicy("g", subject, input.Domain, constants.IsDomain)
 			}
 		}
-
-		h.Enforcer.SavePolicy()
 	case http.MethodDelete:
 		decoder := schema.NewDecoder()
 		filter := Domain{}
@@ -101,9 +98,6 @@ func (h *DomainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if len(filter.Domain) != 0 {
 			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g", 0, filter.Domain)
 			h.Enforcer.RemoveFilteredNamedGroupingPolicy("g", 1, filter.Domain)
-		}
-		if os.Getenv("ENV") != "development" {
-			h.Enforcer.SavePolicy()
 		}
 	}
 }
