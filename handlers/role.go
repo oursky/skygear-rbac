@@ -113,7 +113,6 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				roleAssignments = append(roleAssignments, assignment)
 			}
 		}
-		h.Enforcer.SavePolicy()
 
 		js, _ := json.Marshal(roleAssignments)
 		w.Write(js)
@@ -143,7 +142,5 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if filter.Subject == constants.NoSubject {
 			h.Enforcer.AddNamedGroupingPolicy("g4", filter.Subject, "disabled", filter.Domain)
 		}
-
-		h.Enforcer.SavePolicy()
 	}
 }
