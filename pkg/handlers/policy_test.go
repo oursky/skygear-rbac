@@ -6,13 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	enforcer "skygear-rbac/enforcer"
 	"testing"
+
+	"github.com/oursky/skygear-rbac/pkg/context"
+	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestGetAndDeletePolicy(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 	})
 
 	fakePolicy := Policy{
@@ -25,7 +27,8 @@ func TestGetAndDeletePolicy(t *testing.T) {
 
 	e.AddPolicy(fakePolicy.ToArgs()...)
 
-	handler := &PolicyHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &PolicyHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -75,11 +78,11 @@ func TestGetAndDeletePolicy(t *testing.T) {
 }
 
 func TestAddPolicy(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 	})
-
-	handler := &PolicyHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &EnforceHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 

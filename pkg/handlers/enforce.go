@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/schema"
+	"github.com/oursky/skygear-rbac/pkg/context"
 )
 
 type EnforcesOutput []bool
@@ -22,7 +22,7 @@ type EnforceInput struct {
 }
 
 type EnforceHandler struct {
-	Enforcer *casbin.Enforcer
+	AppContext *context.AppContext
 }
 
 func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +37,7 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(409)
 		}
 
-		res, err := h.Enforcer.Enforce(filter.Domain, filter.Subject, filter.Object, filter.Action)
+		res, err := h.AppContext.Enforcer.Enforce(filter.Domain, filter.Subject, filter.Object, filter.Action)
 		if err != nil {
 			log.Fatal(err)
 			w.WriteHeader(502)
@@ -54,7 +54,7 @@ func (h *EnforceHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		var output EnforcesOutput
 
 		for _, enforce := range input {
-			permit, err := h.Enforcer.Enforce(enforce.Domain, enforce.Subject, enforce.Object, enforce.Action)
+			permit, err := h.AppContext.Enforcer.Enforce(enforce.Domain, enforce.Subject, enforce.Object, enforce.Action)
 			if err != nil {
 				log.Fatal(err)
 			}

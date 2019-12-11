@@ -2,6 +2,22 @@
 
 > NOTE: This service uses casbin as db name, all records e.g. policy, group are under casbin_rule table
 
+## Development
+### Requirements
+- Docker
+- Go 1.12
+
+### Get started
+```sh
+make setup-dev
+# We use docker for our database for development
+docker-compose up
+# Run app
+DATABASE_URL=postgresql://postgres:@localhost:5432/postgres?sslmode=disable go run main.go
+# or
+make run-dev
+```
+
 ## Testing
 
 ```sh
