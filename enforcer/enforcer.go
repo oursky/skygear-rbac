@@ -1,20 +1,21 @@
 package enforcer
 
 import (
+	"database/sql"
 	"log"
 	"skygear-rbac/functions"
 	"time"
 
 	"github.com/casbin/casbin/v2"
-	xormadapter "github.com/casbin/xorm-adapter"
-	"github.com/lib/pq"
+	casbinpgadapter "github.com/cychiuae/casbin-pg-adapter"
 )
 
 // Config configuration for initializing casbin Enforcer
 type Config struct {
-	Model    string
-	File     string
-	Database string
+	Model     string
+	File      string
+	Database  string
+	TableName string
 }
 
 const (
@@ -26,16 +27,15 @@ func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
 	var enforcer *casbin.Enforcer
 	var err error
 	if len(enforcerConfig.Database) != 0 {
-		params, err := pq.ParseURL(enforcerConfig.Database)
 		if err != nil {
 			return nil, err
 		}
-		adapter, err := func() (*xormadapter.Adapter, error) {
+		db, err := func() (*sql.DB, error) {
 			var err error
 			for i := 0; i < enforcerInitializeRetryCount; i++ {
-				a, e := xormadapter.NewAdapter("postgres", params)
+				db, e := sql.Open("postgres", enforcerConfig.Database)
 				if e == nil {
-					return a, nil
+					return db, nil
 				}
 				err = e
 				log.Println("🔌 RBAC failed to connect db, retrying...")
@@ -46,6 +46,7 @@ func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
 		if err != nil {
 			return nil, err
 		}
+		adapter, err := casbinpgadapter.NewAdapter(db, enforcerConfig.TableName)
 		enforcer, err = casbin.NewEnforcer(enforcerConfig.Model, adapter)
 		if err != nil {
 			return nil, err
