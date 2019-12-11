@@ -11,6 +11,18 @@ test:
 dev:
 		ENV="development" go run main.go
 
+.PHONY: setup-dev
+setup-dev:
+	@cp docker-compose.dev.yml docker-compose.override.yml
+	@docker-compose up -d
+	sleep 15
+	@docker-compose down
+	@go mod download
+
+.PHONY: run-dev
+run-dev:
+	@DATABASE_URL=postgresql://postgres:@localhost:5432/postgres?sslmode=disable go run main.go
+
 .PHONY: start
 start:
 		go run main.go
