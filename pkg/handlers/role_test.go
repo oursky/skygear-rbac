@@ -8,12 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/oursky/skygear-rbac/pkg/context"
 	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestGetRoles(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./role_test.policy.csv",
 	})
 
@@ -24,8 +25,8 @@ func TestGetRoles(t *testing.T) {
 			Domain:  "domain:asia",
 		},
 	}
-
-	handler := &RoleHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &RoleHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -54,12 +55,12 @@ func TestGetRoles(t *testing.T) {
 }
 
 func TestAssignThenRemoveRole(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./role_test.policy.csv",
 	})
-
-	handler := &RoleHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &RoleHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 

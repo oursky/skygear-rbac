@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/oursky/skygear-rbac/pkg/context"
 	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
@@ -61,12 +62,12 @@ var cases = []struct {
 }
 
 func TestEnforcePolicy(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./enforce_test.policy.csv",
 	})
-
-	handler := &EnforceHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &EnforceHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -100,12 +101,12 @@ func TestEnforcePolicy(t *testing.T) {
 }
 
 func TestBatchEnforcePolicy(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./enforce_test.policy.csv",
 	})
-
-	handler := &EnforceHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &EnforceHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 

@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/oursky/skygear-rbac/pkg/constants"
+	"github.com/oursky/skygear-rbac/pkg/context"
 	filters "robpike.io/filter"
 )
 
@@ -17,7 +17,7 @@ type UserFilter struct {
 }
 
 type UserHandler struct {
-	Enforcer *casbin.Enforcer
+	AppContext *context.AppContext
 }
 
 func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -41,13 +41,13 @@ func (h *UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Role = role
 		}
 
-		raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 2, filter.Domain)
+		raw := h.AppContext.Enforcer.GetFilteredNamedGroupingPolicy("g", 2, filter.Domain)
 		groups := filters.Choose(GroupsFromCasbin(raw), func(g Group) bool {
 			return ((len(filter.Domain) == 0 || filter.Domain == g.Domain) &&
 				g.Domain != constants.IsDomain &&
 				(len(filter.Role) == 0 || filter.Role == g.Role) &&
 				(g.Subject != constants.NoSubject) &&
-				(!h.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "role", g.Domain) || h.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "user", g.Domain)))
+				(!h.AppContext.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "role", g.Domain) || h.AppContext.Enforcer.HasNamedGroupingPolicy("g3", g.Subject, "user", g.Domain)))
 		})
 		var Users []string
 		for _, group := range groups.([]Group) {

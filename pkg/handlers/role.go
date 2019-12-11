@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/oursky/skygear-rbac/pkg/constants"
+	"github.com/oursky/skygear-rbac/pkg/context"
 	filters "robpike.io/filter"
 )
 
@@ -46,7 +46,7 @@ type RoleAssignmentInput struct {
 }
 
 type RoleHandler struct {
-	Enforcer *casbin.Enforcer
+	AppContext *context.AppContext
 }
 
 func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +74,7 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Subject = constants.NoSubject
 		}
 
-		raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, filter.Subject)
+		raw := h.AppContext.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, filter.Subject)
 		roleAssignments := filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
 			return (len(filter.Domain) == 0 || filter.Domain == ra.Domain)
 		})
@@ -100,12 +100,12 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if input.Unassign {
-				h.Enforcer.RemoveNamedGroupingPolicy("g", input.Subject, input.Role, input.Domain)
+				h.AppContext.Enforcer.RemoveNamedGroupingPolicy("g", input.Subject, input.Role, input.Domain)
 			} else {
-				h.Enforcer.AddNamedGroupingPolicy("g", input.Subject, input.Role, input.Domain)
+				h.AppContext.Enforcer.AddNamedGroupingPolicy("g", input.Subject, input.Role, input.Domain)
 			}
 
-			raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, input.Subject)
+			raw := h.AppContext.Enforcer.GetFilteredNamedGroupingPolicy("g", 0, input.Subject)
 			for _, assignment := range filters.Choose(RoleAssignmentsFromCasbin(raw), func(ra RoleAssignment) bool {
 				return (len(input.Domain) == 0 || input.Domain == ra.Domain)
 			}).([]RoleAssignment) {
@@ -136,10 +136,10 @@ func (h *RoleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Subject = constants.NoSubject
 		}
 
-		h.Enforcer.RemoveNamedGroupingPolicy("g", filter.Subject, filter.Role, filter.Domain)
+		h.AppContext.Enforcer.RemoveNamedGroupingPolicy("g", filter.Subject, filter.Role, filter.Domain)
 
 		if filter.Subject == constants.NoSubject {
-			h.Enforcer.AddNamedGroupingPolicy("g4", filter.Subject, "disabled", filter.Domain)
+			h.AppContext.Enforcer.AddNamedGroupingPolicy("g4", filter.Subject, "disabled", filter.Domain)
 		}
 	}
 }

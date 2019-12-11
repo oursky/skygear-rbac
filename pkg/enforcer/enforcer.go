@@ -3,7 +3,6 @@ package enforcer
 import (
 	"database/sql"
 	"log"
-	"time"
 
 	"github.com/casbin/casbin/v2"
 	casbinpgadapter "github.com/cychiuae/casbin-pg-adapter"
@@ -23,30 +22,15 @@ const (
 )
 
 // NewEnforcer creates and return a casbin Enforcer
-func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
+func NewEnforcer(db *sql.DB, enforcerConfig Config) (*casbin.Enforcer, error) {
 	var enforcer *casbin.Enforcer
 	var err error
-	if len(enforcerConfig.Database) != 0 {
-		if err != nil {
-			return nil, err
-		}
-		db, err := func() (*sql.DB, error) {
-			var err error
-			for i := 0; i < enforcerInitializeRetryCount; i++ {
-				db, e := sql.Open("postgres", enforcerConfig.Database)
-				if e == nil {
-					return db, nil
-				}
-				err = e
-				log.Println("🔌 RBAC failed to connect db, retrying...")
-				time.Sleep(time.Second)
-			}
-			return nil, err
-		}()
-		if err != nil {
-			return nil, err
-		}
+	if db != nil {
 		adapter, err := casbinpgadapter.NewAdapter(db, enforcerConfig.TableName)
+		if err != nil {
+			return nil, err
+		}
+
 		enforcer, err = casbin.NewEnforcer(enforcerConfig.Model, adapter)
 		if err != nil {
 			return nil, err
@@ -64,10 +48,11 @@ func NewEnforcer(enforcerConfig Config) (*casbin.Enforcer, error) {
 			return nil, err
 		}
 	}
-
+	enforcer.LoadPolicy()
 	enforcer.EnableAutoSave(true)
-
-	enforcer.AddFunction("isAssignedRoleInParentDomain", functions.CreateIsAssignedRoleInParentDomain(enforcer))
-
+	enforcer.AddFunction(
+		"isAssignedRoleInParentDomain",
+		functions.CreateIsAssignedRoleInParentDomain(enforcer),
+	)
 	return enforcer, nil
 }

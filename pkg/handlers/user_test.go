@@ -7,16 +7,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/oursky/skygear-rbac/pkg/context"
 	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestGetUsers(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./role_test.policy.csv",
 	})
-
-	handler := &UserHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &UserHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 

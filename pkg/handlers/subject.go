@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/oursky/skygear-rbac/pkg/constants"
+	"github.com/oursky/skygear-rbac/pkg/context"
 	filters "robpike.io/filter"
 )
 
@@ -36,7 +36,7 @@ type SubjectFilter struct {
 }
 
 type SubjectHandler struct {
-	Enforcer *casbin.Enforcer
+	AppContext *context.AppContext
 }
 
 func (h *SubjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +60,7 @@ func (h *SubjectHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Role = role
 		}
 
-		raw := h.Enforcer.GetFilteredNamedGroupingPolicy("g", 2, filter.Domain)
+		raw := h.AppContext.Enforcer.GetFilteredNamedGroupingPolicy("g", 2, filter.Domain)
 
 		groups := filters.Choose(GroupsFromCasbin(raw), func(g Group) bool {
 			return ((len(filter.Domain) == 0 || filter.Domain == g.Domain) &&

@@ -8,15 +8,16 @@ import (
 	"testing"
 
 	"github.com/oursky/skygear-rbac/pkg/constants"
+	"github.com/oursky/skygear-rbac/pkg/context"
 	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestReload(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 	})
-
-	handler := &ReloadHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &ReloadHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 

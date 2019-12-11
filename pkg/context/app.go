@@ -9,13 +9,13 @@ import (
 // AppContext is used to pass services to request
 type AppContext struct {
 	db       *sql.DB
-	enforcer *casbin.Enforcer
+	Enforcer *casbin.Enforcer
 }
 
 // NewAppContext returns a new AppContext
 func NewAppContext(db *sql.DB, enforcer *casbin.Enforcer) AppContext {
 	return AppContext{
 		db:       db,
-		enforcer: enforcer,
+		Enforcer: enforcer,
 	}
 }

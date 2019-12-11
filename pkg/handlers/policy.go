@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
+	"github.com/oursky/skygear-rbac/pkg/context"
 	filters "robpike.io/filter"
 )
 
@@ -63,7 +63,7 @@ func PoliciesFromCasbin(raw [][]string) []Policy {
 }
 
 type PolicyHandler struct {
-	Enforcer *casbin.Enforcer
+	AppContext *context.AppContext
 }
 
 func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +88,7 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filter.Subject = role
 		}
 
-		raw := h.Enforcer.GetPolicy()
+		raw := h.AppContext.Enforcer.GetPolicy()
 		policies := filters.Choose(PoliciesFromCasbin(raw), func(p Policy) bool {
 			return ((len(filter.Domain) == 0 || filter.Domain == p.Domain) &&
 				(len(filter.Object) == 0 || filter.Object == p.Object) &&
@@ -112,12 +112,12 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if policy.Effect == "deny" {
-				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action)
-				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
-				h.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "deny")
+				h.AppContext.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action)
+				h.AppContext.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
+				h.AppContext.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "deny")
 			} else {
-				h.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "deny")
-				h.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
+				h.AppContext.Enforcer.RemovePolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "deny")
+				h.AppContext.Enforcer.AddPolicy(policy.Domain, policy.Subject, policy.Object, policy.Action, "allow")
 			}
 		}
 		w.WriteHeader(200)
@@ -138,7 +138,7 @@ func (h *PolicyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		_, err = h.Enforcer.RemovePolicy(filter.ToArgs()...)
+		_, err = h.AppContext.Enforcer.RemovePolicy(filter.ToArgs()...)
 		if err != nil {
 			log.Fatal(err)
 			w.WriteHeader(502)

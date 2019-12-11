@@ -8,16 +8,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/oursky/skygear-rbac/pkg/context"
 	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestGetDomains(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, err := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./domain_test.policy.csv",
 	})
-
-	handler := &DomainHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &DomainHandler{AppContext: &appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -49,11 +50,11 @@ func TestGetDomains(t *testing.T) {
 }
 
 func TestCreateDomains(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 	})
-
-	handler := &DomainHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &DomainHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -104,12 +105,12 @@ func TestCreateDomains(t *testing.T) {
 }
 
 func TestDeleteDomainSubject(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./domain_test.policy.csv",
 	})
-
-	handler := &DomainHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &DomainHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -133,12 +134,12 @@ func TestDeleteDomainSubject(t *testing.T) {
 }
 
 func TestDeleteDomain(t *testing.T) {
-	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model: "../model.conf",
+	e, _ := enforcer.NewEnforcer(nil, enforcer.Config{
+		Model: "../../model.conf",
 		File:  "./domain_test.policy.csv",
 	})
-
-	handler := &DomainHandler{e}
+	appContext := context.NewAppContext(nil, e)
+	handler := &DomainHandler{&appContext}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
