@@ -17,10 +17,6 @@ type Config struct {
 	TableName string
 }
 
-const (
-	enforcerInitializeRetryCount = 3
-)
-
 // NewEnforcer creates and return a casbin Enforcer
 func NewEnforcer(db *sql.DB, enforcerConfig Config) (*casbin.Enforcer, error) {
 	var enforcer *casbin.Enforcer

@@ -2,8 +2,8 @@ github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible h1
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/casbin/casbin/v2 v2.1.2 h1:bTwon/ECRx9dwBy2ewRVr5OiqjeXSGiTUY74sDPQi/g=
 github.com/casbin/casbin/v2 v2.1.2/go.mod h1:YcPU1XXisHhLzuxH9coDNf2FbKpjGlbCg3n9yuLkIJQ=
-github.com/cychiuae/casbin-pg-adapter v0.0.2 h1:y+5tje7QjQWva1T+Q/jQ0N5akeZEA3k3VWVjr3a6EUw=
-github.com/cychiuae/casbin-pg-adapter v0.0.2/go.mod h1:L2Glgu6p4Qhj6TPQNIzlztp0IWeJrU5zqCMyKuBNs5Y=
+github.com/cychiuae/casbin-pg-adapter v0.0.3 h1:X7emmbT0YPXTiPAxV7uqBev4KXm2ZA3FSh3UydJNPEc=
+github.com/cychiuae/casbin-pg-adapter v0.0.3/go.mod h1:L2Glgu6p4Qhj6TPQNIzlztp0IWeJrU5zqCMyKuBNs5Y=
 github.com/gorilla/mux v1.7.3 h1:gnP5JzjVOuiZD07fKKToCAOjS0yOpj/qPETTXCCS6hw=
 github.com/gorilla/mux v1.7.3/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
 github.com/gorilla/schema v1.1.0 h1:CamqUDOFUBqzrvxuz2vEwo8+SUdwsluFh7IlzJh30LY=

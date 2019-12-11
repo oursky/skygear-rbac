@@ -6,6 +6,7 @@ import (
 	"html"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
@@ -38,7 +39,19 @@ func main() {
 	var db *sql.DB
 	if enforcerConfig.Database != "" {
 		var err error
-		db, err = sql.Open("postgres", enforcerConfig.Database)
+		db, err = func() (*sql.DB, error) {
+			var err error
+			for i := 0; i < 3; i++ {
+				dbb, errr := sql.Open("postgres", enforcerConfig.Database)
+				if errr == nil {
+					return dbb, nil
+				}
+				err = errr
+				log.Println("🔌 RBAC failed to connect db, retrying...")
+				time.Sleep(time.Second)
+			}
+			return nil, err
+		}()
 		if err != nil {
 			log.Panic(err)
 		}
@@ -59,6 +72,7 @@ func main() {
 		return func(w http.ResponseWriter, r *http.Request) {
 			appContext, err := makeAppContext()
 			if err != nil {
+				log.Panicf("Cannot initial app context for handler %v", err)
 				w.WriteHeader(502)
 				return
 			}
@@ -103,6 +117,6 @@ func main() {
 		return &handlers.DomainHandler{AppContext: appContext}
 	}))
 
-	log.Println("🚀 RBAC listening on 6543")
+	log.Println("🚀 new RBAC listening on 6543")
 	log.Fatal(http.ListenAndServe(":6543", r))
 }
