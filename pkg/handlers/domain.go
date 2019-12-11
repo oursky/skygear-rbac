@@ -7,8 +7,7 @@ import (
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
-
-	"skygear-rbac/constants"
+	"github.com/oursky/skygear-rbac/pkg/constants"
 )
 
 type Domain struct {

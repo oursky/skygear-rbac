@@ -6,8 +6,7 @@ import (
 	"net/http"
 
 	casbin "github.com/casbin/casbin/v2"
-
-	"skygear-rbac/constants"
+	"github.com/oursky/skygear-rbac/pkg/constants"
 )
 
 type ReloadHandler struct {

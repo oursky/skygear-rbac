@@ -6,14 +6,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	enforcer "skygear-rbac/enforcer"
 	"testing"
+
+	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestGetDomains(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model:  "../model.conf",
-		File: "./domain_test.policy.csv",
+		Model: "../model.conf",
+		File:  "./domain_test.policy.csv",
 	})
 
 	handler := &DomainHandler{e}
@@ -104,8 +105,8 @@ func TestCreateDomains(t *testing.T) {
 
 func TestDeleteDomainSubject(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model:  "../model.conf",
-		File: "./domain_test.policy.csv",
+		Model: "../model.conf",
+		File:  "./domain_test.policy.csv",
 	})
 
 	handler := &DomainHandler{e}
@@ -133,8 +134,8 @@ func TestDeleteDomainSubject(t *testing.T) {
 
 func TestDeleteDomain(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model:  "../model.conf",
-		File: "./domain_test.policy.csv",
+		Model: "../model.conf",
+		File:  "./domain_test.policy.csv",
 	})
 
 	handler := &DomainHandler{e}

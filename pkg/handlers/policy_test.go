@@ -6,8 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	enforcer "skygear-rbac/enforcer"
 	"testing"
+
+	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestGetAndDeletePolicy(t *testing.T) {

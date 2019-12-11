@@ -3,11 +3,11 @@ package enforcer
 import (
 	"database/sql"
 	"log"
-	"skygear-rbac/functions"
 	"time"
 
 	"github.com/casbin/casbin/v2"
 	casbinpgadapter "github.com/cychiuae/casbin-pg-adapter"
+	"github.com/oursky/skygear-rbac/pkg/functions"
 )
 
 // Config configuration for initializing casbin Enforcer

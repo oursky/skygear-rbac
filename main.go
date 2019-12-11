@@ -5,12 +5,13 @@ import (
 	"html"
 	"log"
 	"net/http"
-	"skygear-rbac/config"
-	"skygear-rbac/enforcer"
-	handlers "skygear-rbac/handlers"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
+
+	"github.com/oursky/skygear-rbac/pkg/config"
+	"github.com/oursky/skygear-rbac/pkg/enforcer"
+	handlers "github.com/oursky/skygear-rbac/pkg/handlers"
 )
 
 func reloadEnforcer(enforcer *casbin.Enforcer) error {

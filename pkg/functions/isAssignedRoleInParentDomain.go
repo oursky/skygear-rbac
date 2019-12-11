@@ -1,9 +1,8 @@
 package functions
 
 import (
-	"skygear-rbac/constants"
-
 	"github.com/casbin/casbin/v2"
+	"github.com/oursky/skygear-rbac/pkg/constants"
 )
 
 // CreateIsAssignedRoleInParentDomain Generates function matcher to find if role is assigned to user in domain or parent domains

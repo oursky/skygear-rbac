@@ -5,14 +5,15 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	enforcer "skygear-rbac/enforcer"
 	"testing"
+
+	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestGetUsers(t *testing.T) {
 	e, _ := enforcer.NewEnforcer(enforcer.Config{
-		Model:  "../model.conf",
-		File: "./role_test.policy.csv",
+		Model: "../model.conf",
+		File:  "./role_test.policy.csv",
 	})
 
 	handler := &UserHandler{e}

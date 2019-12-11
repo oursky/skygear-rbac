@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"skygear-rbac/constants"
 
 	casbin "github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
+	"github.com/oursky/skygear-rbac/pkg/constants"
 	filters "robpike.io/filter"
 )
 

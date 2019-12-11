@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"skygear-rbac/constants"
-	enforcer "skygear-rbac/enforcer"
 	"testing"
+
+	"github.com/oursky/skygear-rbac/pkg/constants"
+	enforcer "github.com/oursky/skygear-rbac/pkg/enforcer"
 )
 
 func TestReload(t *testing.T) {

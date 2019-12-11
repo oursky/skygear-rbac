@@ -1,4 +1,4 @@
-module skygear-rbac
+module github.com/oursky/skygear-rbac
 
 go 1.12
 
