@@ -28,6 +28,7 @@ func (h *ReloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		json.NewDecoder(r.Body).Decode(&input)
 
 		h.AppContext.Enforcer.EnableAutoSave(false)
+		h.AppContext.Enforcer.ClearPolicy()
 
 		// Saves domain inheritance
 		for _, domainInput := range input.Domains {
