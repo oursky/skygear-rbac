@@ -6,13 +6,15 @@ import (
 	"html"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/casbin/casbin/v2"
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
 
 	"github.com/oursky/skygear-rbac/pkg/config"
 	"github.com/oursky/skygear-rbac/pkg/context"
+	"github.com/oursky/skygear-rbac/pkg/database"
 	"github.com/oursky/skygear-rbac/pkg/enforcer"
 	handlers "github.com/oursky/skygear-rbac/pkg/handlers"
 )
@@ -22,42 +24,30 @@ func reloadEnforcer(enforcer *casbin.Enforcer) error {
 }
 
 func main() {
-	var enforcerConfig = enforcer.Config{
-		Model:     "./model.conf",
-		Database:  config.LoadFromEnv("DATABASE_URL", ""),
-		File:      config.LoadFromEnv("POLICY_PATH", ""),
-		TableName: config.LoadFromEnv("TABLE_NAME", "casbin_rule"),
-	}
+	config := config.LoadConfigFromEnv()
 
-	if config.LoadFromEnv("ENV", "") == "development" {
-		enforcerConfig = enforcer.Config{
-			Model: "./model.conf",
-			File:  "./policy.csv",
+	var sentryHandler *sentryhttp.Handler
+	if config.SentryDsn != "" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn: config.SentryDsn,
+		})
+		if err != nil {
+			log.Panicf("Sentry initialization failed: %v\n", err)
 		}
+		sentryHandler = sentryhttp.New(sentryhttp.Options{})
 	}
 
 	var db *sql.DB
-	if enforcerConfig.Database != "" {
+	if config.Database != "" {
 		var err error
-		db, err = func() (*sql.DB, error) {
-			var err error
-			for i := 0; i < 3; i++ {
-				dbb, errr := sql.Open("postgres", enforcerConfig.Database)
-				if errr == nil {
-					return dbb, nil
-				}
-				err = errr
-				log.Println("🔌 RBAC failed to connect db, retrying...")
-				time.Sleep(time.Second)
-			}
-			return nil, err
-		}()
+		db, err = database.OpenDB(config.Database, 3)
 		if err != nil {
 			log.Panic(err)
 		}
 	}
 
 	makeAppContext := func() (*context.AppContext, error) {
+		enforcerConfig := enforcer.NewEnforcerConfigFromConfig(config)
 		enforcer, err := enforcer.NewEnforcer(db, enforcerConfig)
 		if err != nil {
 			return nil, err
@@ -69,7 +59,7 @@ func main() {
 	makeHandlerFunc := func(
 		f func(appContext *context.AppContext) http.Handler,
 	) func(w http.ResponseWriter, r *http.Request) {
-		return func(w http.ResponseWriter, r *http.Request) {
+		handlerFunc := func(w http.ResponseWriter, r *http.Request) {
 			appContext, err := makeAppContext()
 			if err != nil {
 				log.Panicf("Cannot initial app context for handler %v", err)
@@ -79,6 +69,10 @@ func main() {
 			handler := f(appContext)
 			handler.ServeHTTP(w, r)
 		}
+		if sentryHandler == nil {
+			return handlerFunc
+		}
+		return sentryHandler.HandleFunc(handlerFunc)
 	}
 
 	r := mux.NewRouter()
