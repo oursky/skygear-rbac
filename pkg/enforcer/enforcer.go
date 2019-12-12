@@ -6,6 +6,7 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	casbinpgadapter "github.com/cychiuae/casbin-pg-adapter"
+	"github.com/oursky/skygear-rbac/pkg/config"
 	"github.com/oursky/skygear-rbac/pkg/functions"
 )
 
@@ -15,6 +16,16 @@ type Config struct {
 	File      string
 	Database  string
 	TableName string
+}
+
+// NewEnforcerConfigFromConfig create enforcer config from confi
+func NewEnforcerConfigFromConfig(appConfig config.Config) Config {
+	return Config{
+		Model:     appConfig.Model,
+		File:      appConfig.File,
+		Database:  appConfig.Database,
+		TableName: appConfig.TableName,
+	}
 }
 
 // NewEnforcer creates and return a casbin Enforcer

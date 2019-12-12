@@ -6,13 +6,13 @@ import (
 	"html"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gorilla/mux"
 
 	"github.com/oursky/skygear-rbac/pkg/config"
 	"github.com/oursky/skygear-rbac/pkg/context"
+	"github.com/oursky/skygear-rbac/pkg/database"
 	"github.com/oursky/skygear-rbac/pkg/enforcer"
 	handlers "github.com/oursky/skygear-rbac/pkg/handlers"
 )
@@ -22,42 +22,19 @@ func reloadEnforcer(enforcer *casbin.Enforcer) error {
 }
 
 func main() {
-	var enforcerConfig = enforcer.Config{
-		Model:     "./model.conf",
-		Database:  config.LoadFromEnv("DATABASE_URL", ""),
-		File:      config.LoadFromEnv("POLICY_PATH", ""),
-		TableName: config.LoadFromEnv("TABLE_NAME", "casbin_rule"),
-	}
-
-	if config.LoadFromEnv("ENV", "") == "development" {
-		enforcerConfig = enforcer.Config{
-			Model: "./model.conf",
-			File:  "./policy.csv",
-		}
-	}
+	config := config.LoadConfigFromEnv()
 
 	var db *sql.DB
-	if enforcerConfig.Database != "" {
+	if config.Database != "" {
 		var err error
-		db, err = func() (*sql.DB, error) {
-			var err error
-			for i := 0; i < 3; i++ {
-				dbb, errr := sql.Open("postgres", enforcerConfig.Database)
-				if errr == nil {
-					return dbb, nil
-				}
-				err = errr
-				log.Println("🔌 RBAC failed to connect db, retrying...")
-				time.Sleep(time.Second)
-			}
-			return nil, err
-		}()
+		db, err = database.OpenDB(config.Database, 3)
 		if err != nil {
 			log.Panic(err)
 		}
 	}
 
 	makeAppContext := func() (*context.AppContext, error) {
+		enforcerConfig := enforcer.NewEnforcerConfigFromConfig(config)
 		enforcer, err := enforcer.NewEnforcer(db, enforcerConfig)
 		if err != nil {
 			return nil, err
