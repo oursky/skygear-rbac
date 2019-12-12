@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"github.com/casbin/casbin/v2"
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/gorilla/mux"
 
 	"github.com/oursky/skygear-rbac/pkg/config"
@@ -23,6 +25,17 @@ func reloadEnforcer(enforcer *casbin.Enforcer) error {
 
 func main() {
 	config := config.LoadConfigFromEnv()
+
+	var sentryHandler *sentryhttp.Handler
+	if config.SentryDsn != "" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn: config.SentryDsn,
+		})
+		if err != nil {
+			log.Panicf("Sentry initialization failed: %v\n", err)
+		}
+		sentryHandler = sentryhttp.New(sentryhttp.Options{})
+	}
 
 	var db *sql.DB
 	if config.Database != "" {
@@ -46,7 +59,7 @@ func main() {
 	makeHandlerFunc := func(
 		f func(appContext *context.AppContext) http.Handler,
 	) func(w http.ResponseWriter, r *http.Request) {
-		return func(w http.ResponseWriter, r *http.Request) {
+		handlerFunc := func(w http.ResponseWriter, r *http.Request) {
 			appContext, err := makeAppContext()
 			if err != nil {
 				log.Panicf("Cannot initial app context for handler %v", err)
@@ -56,6 +69,10 @@ func main() {
 			handler := f(appContext)
 			handler.ServeHTTP(w, r)
 		}
+		if sentryHandler == nil {
+			return handlerFunc
+		}
+		return sentryHandler.HandleFunc(handlerFunc)
 	}
 
 	r := mux.NewRouter()

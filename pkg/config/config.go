@@ -8,6 +8,7 @@ type Config struct {
 	File      string
 	Database  string
 	TableName string
+	SentryDsn string
 }
 
 // LoadFromEnv loads value from env or return default value if missing
@@ -32,5 +33,6 @@ func LoadConfigFromEnv() Config {
 		Database:  LoadFromEnv("DATABASE_URL", ""),
 		File:      LoadFromEnv("POLICY_PATH", ""),
 		TableName: LoadFromEnv("TABLE_NAME", "casbin_rule"),
+		SentryDsn: LoadFromEnv("SENTRY_DSN", ""),
 	}
 }
